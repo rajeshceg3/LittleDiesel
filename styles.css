@@ -1,6 +1,6 @@
 :root {
   --ink: #4a3428;
-  --paper: #fdf3e7;
+  --paper: #f7eedd;
   --clay: #ffd9a8;
   --clay-dark: #e8b078;
   --ease-spring: cubic-bezier(0.34, 1.8, 0.64, 1);
@@ -99,3 +99,54 @@ body { font-family: "Fredoka", system-ui, sans-serif; -webkit-font-smoothing: an
   background: #e8735a; color: #fff8f0;
   box-shadow: 0 4px 0 #c14f38, 0 8px 16px rgba(74,52,40,0.18);
 }
+
+
+/* ---------- ink upgrade ---------- */
+/* paper grain over everything (non-interactive) */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  opacity: 0.35; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  .wordmark { animation-duration: 0.01s; }
+  #banner.pop { animation-duration: 0.01s; }
+}
+
+/* x-ray labels: hand-written notes with ink leader lines */
+#labels { position: fixed; inset: 0; z-index: 15; pointer-events: none; }
+.xlabel {
+  position: absolute; top: 0; left: 0;
+  font-family: "Caveat", cursive; font-weight: 600;
+  font-size: clamp(1.25rem, 5vw, 1.7rem); color: #33241c;
+  opacity: 0; transition: opacity 0.5s ease;
+  will-change: transform;
+}
+.xlabel.on { opacity: 0.92; }
+#leaders { position: fixed; inset: 0; z-index: 14; pointer-events: none; width: 100%; height: 100%; }
+.leader {
+  fill: none; stroke: #33241c; stroke-width: 1.6;
+  stroke-linecap: round; stroke-dasharray: 5 4;
+  opacity: 0; transition: opacity 0.5s ease;
+}
+.leader.on { opacity: 0.55; }
+
+/* card + buttons: paper with ink stamp shadow */
+#card {
+  background: #fffaf0;
+  border: 2px solid #33241c;
+  border-radius: 22px;
+  box-shadow: 5px 6px 0 rgba(51, 36, 28, 0.85);
+}
+#card h2 { font-family: "Caveat", cursive; font-size: 1.9rem; font-weight: 600; }
+#card-ok {
+  border: 2px solid #33241c;
+  box-shadow: 3px 4px 0 rgba(51, 36, 28, 0.85);
+}
+#card-ok:active { transform: translate(2px, 3px); box-shadow: 1px 1px 0 rgba(51, 36, 28, 0.85); }
+.modebtn {
+  border: 2px solid #33241c;
+  box-shadow: 3px 4px 0 rgba(51, 36, 28, 0.85);
+}
+.modebtn:active { transform: translate(2px, 3px); box-shadow: 1px 1px 0 rgba(51, 36, 28, 0.85); }
+.modebtn.active { background: #e8735a; box-shadow: 3px 4px 0 rgba(51, 36, 28, 0.85); }
