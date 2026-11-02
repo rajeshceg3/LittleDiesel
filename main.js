@@ -446,7 +446,10 @@ function tick() {
 
   const len = camera.position.length();
   camera.position.setLength(lerp(len, camDist, 1 - Math.exp(-2.2 * dt)));
-  controls.target.y = lerp(controls.target.y, mode === 1 ? baseTargetY + 1.1 : baseTargetY, 1 - Math.exp(-2.2 * dt));
+  /* mode 1 lifts to frame the ghosted spread; mode 2 adds a small lift on
+     tall screens so the top labels stay below the narration banner band */
+  const xrayLift = mode === 1 ? 1.1 : mode === 2 ? (innerWidth / innerHeight < 0.75 ? 0.65 : 0) : 0;
+  controls.target.y = lerp(controls.target.y, baseTargetY + xrayLift, 1 - Math.exp(-2.2 * dt));
   stepSprings(dt);
   controls.update();
   projectLabels();
