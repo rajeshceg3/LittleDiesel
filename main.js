@@ -273,7 +273,9 @@ function setXrayTargets(on) {
   for (const [mesh, edges] of ghosts) {
     spring(edges.material, "opacity", on ? 0.9 : 0, { stiffness: 40, damping: 10 });
     spring(mesh.material, "opacity", on ? 0.16 : (mesh === shell ? 0.45 : 1), { stiffness: 40, damping: 10 });
-    mesh.material.transparent = true;
+    /* turning transparency on after first compile needs a shader rebuild,
+       or the opacity spring is silently ignored (block/head stayed solid) */
+    if (!mesh.material.transparent) { mesh.material.transparent = true; mesh.material.needsUpdate = true; }
   }
 }
 
