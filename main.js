@@ -40,7 +40,10 @@ sun.position.set(4, 8, 5);
 scene.add(sun);
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 2.2, 0);
+/* tall screens: look a touch lower so the engine rides higher in frame,
+   reserving the bottom band for the hint line (no card, no pill) */
+let baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.2;
+controls.target.set(0, baseTargetY, 0);
 controls.enablePan = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -52,6 +55,7 @@ controls.autoRotate = !reducedMotion;
 controls.autoRotateSpeed = 0.8;
 
 function resize() {
+  baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.2;
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
@@ -442,7 +446,7 @@ function tick() {
 
   const len = camera.position.length();
   camera.position.setLength(lerp(len, camDist, 1 - Math.exp(-2.2 * dt)));
-  controls.target.y = lerp(controls.target.y, mode === 1 ? 3.4 : 2.2, 1 - Math.exp(-2.2 * dt));
+  controls.target.y = lerp(controls.target.y, mode === 1 ? baseTargetY + 1.1 : baseTargetY, 1 - Math.exp(-2.2 * dt));
   stepSprings(dt);
   controls.update();
   projectLabels();
