@@ -74,7 +74,7 @@ const INK = "#33241c";
 function inkify(mesh, thickness = 1.03) {
   const hull = new THREE.Mesh(
     mesh.geometry,
-    new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide })
+    new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide, transparent: true })
   );
   hull.scale.setScalar(thickness);
   hull.rotation.set((Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02);
@@ -163,7 +163,8 @@ engine.add(rod);
 
 /* ink every solid part; ghost edges on the exterior for x-ray */
 [ piston, valveIn, valveOut, injector, rod ].forEach((m) => inkify(m, 1.045));
-[ block, head, shell ].forEach((m) => inkify(m, 1.03));
+const hulls = new Map();
+[ block, head, shell ].forEach((m) => hulls.set(m, inkify(m, 1.03)));
 crankAxle.rotation.set(0, 0, 0); inkify(crankAxle, 1.05); crankAxle.rotation.z = Math.PI / 2;
 inkify(crankWeb, 1.06);
 const ghosts = new Map();
@@ -276,6 +277,10 @@ function setXrayTargets(on) {
     /* turning transparency on after first compile needs a shader rebuild,
        or the opacity spring is silently ignored (block/head stayed solid) */
     if (!mesh.material.transparent) { mesh.material.transparent = true; mesh.material.needsUpdate = true; }
+    /* the ink hull is a second opaque skin: fade it too, or x-ray shows a
+       dark inverted shell where the part was */
+    const hull = hulls.get(mesh);
+    if (hull) spring(hull.material, "opacity", on ? 0 : 1, { stiffness: 40, damping: 10 });
   }
 }
 
