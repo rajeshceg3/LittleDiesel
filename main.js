@@ -334,7 +334,7 @@ function setMode(m) {
   mode = m;
   /* mode 2 pulls back so the whole engine fits between the narration
      band and the hint band - genuinely separate space, both widths */
-  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0) + (m === 2 ? (innerWidth / innerHeight < 0.75 ? 1.5 : 4.1) : 0);
+  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0) + (m === 2 ? (innerWidth / innerHeight < 0.75 ? 1.5 : 5.6) : 0);
   modeBtns.forEach((b, i) => b.classList.toggle("active", i === m));
   controls.autoRotate = m === 0 && !reducedMotion;
   card.classList.remove("show");
