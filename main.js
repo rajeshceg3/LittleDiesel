@@ -43,7 +43,7 @@ const controls = new OrbitControls(camera, canvas);
 /* look a touch lower so the engine rides higher in frame, reserving the
    bottom band for the hint line (no card, no pill) - tall screens lift
    further, laptop gets a milder lift plus a slightly longer camera */
-let baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.0;
+let baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 1.9;
 controls.target.set(0, baseTargetY, 0);
 controls.enablePan = false;
 controls.enableDamping = true;
@@ -56,7 +56,7 @@ controls.autoRotate = !reducedMotion;
 controls.autoRotateSpeed = 0.8;
 
 function resize() {
-  baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.0;
+  baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 1.9;
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
@@ -321,7 +321,7 @@ const cardText = document.getElementById("card-text");
 const chrome = [...document.querySelectorAll(".chrome")].filter((c) => c.id !== "modes");
 const modeBtns = [...document.querySelectorAll(".modebtn")];
 let mode = 0;
-let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10.6;
+let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10.9;
 
 const HINTS = [
   "Drag to spin it around",
@@ -332,7 +332,7 @@ const MAGIC = "Diesel secret: there is NO spark plug! The squeeze alone makes th
 
 function setMode(m) {
   mode = m;
-  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.6) + (m === 1 ? 8.0 : 0);
+  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0);
   modeBtns.forEach((b, i) => b.classList.toggle("active", i === m));
   controls.autoRotate = m === 0 && !reducedMotion;
   card.classList.remove("show");
