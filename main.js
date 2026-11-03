@@ -40,9 +40,10 @@ sun.position.set(4, 8, 5);
 scene.add(sun);
 
 const controls = new OrbitControls(camera, canvas);
-/* tall screens: look a touch lower so the engine rides higher in frame,
-   reserving the bottom band for the hint line (no card, no pill) */
-let baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.2;
+/* look a touch lower so the engine rides higher in frame, reserving the
+   bottom band for the hint line (no card, no pill) - tall screens lift
+   further, laptop gets a milder lift plus a slightly longer camera */
+let baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.0;
 controls.target.set(0, baseTargetY, 0);
 controls.enablePan = false;
 controls.enableDamping = true;
@@ -55,7 +56,7 @@ controls.autoRotate = !reducedMotion;
 controls.autoRotateSpeed = 0.8;
 
 function resize() {
-  baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.2;
+  baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 2.0;
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
@@ -228,6 +229,18 @@ labeledParts.forEach((p) => {
   leaderPaths.set(p, path);
 });
 const tmpV = new THREE.Vector3();
+/* top band reserved for the narration banner while it runs (mode 2).
+   Measured from the live DOM, so it holds at any width, font or safe-area.
+   94 matches the long-standing stacking floor when no banner is up. */
+let reserveCacheW = -1, reserveCacheY = 94;
+function topReserveY() {
+  if (mode !== 2) return 94;
+  if (reserveCacheW !== innerWidth) {
+    reserveCacheW = innerWidth;
+    reserveCacheY = oneliner.getBoundingClientRect().bottom + 30;
+  }
+  return reserveCacheY;
+}
 function projectLabels() {
   const show = mode === 1 || mode === 2;
   const w = innerWidth, h = innerHeight;
@@ -256,7 +269,7 @@ function projectLabels() {
     columns[1][1] = items.filter((it) => it.side === 1).sort((a, b) => a.ay - b.ay);
   }
   for (const [side0, col] of columns) {
-    let prevY = 60;
+    let prevY = topReserveY() - 34;
     for (const it of col) {
       let ly = Math.max(prevY + 34, it.ay - 18);
       ly = Math.min(h - 110, ly);
@@ -308,7 +321,7 @@ const cardText = document.getElementById("card-text");
 const chrome = [...document.querySelectorAll(".chrome")].filter((c) => c.id !== "modes");
 const modeBtns = [...document.querySelectorAll(".modebtn")];
 let mode = 0;
-let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10;
+let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10.6;
 
 const HINTS = [
   "Drag to spin it around",
@@ -319,7 +332,7 @@ const MAGIC = "Diesel secret: there is NO spark plug! The squeeze alone makes th
 
 function setMode(m) {
   mode = m;
-  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10) + (m === 1 ? 8.0 : 0);
+  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.6) + (m === 1 ? 8.0 : 0);
   modeBtns.forEach((b, i) => b.classList.toggle("active", i === m));
   controls.autoRotate = m === 0 && !reducedMotion;
   card.classList.remove("show");
