@@ -332,7 +332,9 @@ const MAGIC = "Diesel secret: there is NO spark plug! The squeeze alone makes th
 
 function setMode(m) {
   mode = m;
-  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0);
+  /* mode 2 pulls back so the whole engine fits between the narration
+     band and the hint band - genuinely separate space, both widths */
+  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0) + (m === 2 ? (innerWidth / innerHeight < 0.75 ? 1.5 : 8.5) : 0);
   modeBtns.forEach((b, i) => b.classList.toggle("active", i === m));
   controls.autoRotate = m === 0 && !reducedMotion;
   card.classList.remove("show");
@@ -461,7 +463,11 @@ function tick() {
   camera.position.setLength(lerp(len, camDist, 1 - Math.exp(-2.2 * dt)));
   /* mode 1 lifts to frame the ghosted spread; mode 2 adds a small lift on
      tall screens so the top labels stay below the narration banner band */
-  const xrayLift = mode === 1 ? 1.1 : mode === 2 ? (innerWidth / innerHeight < 0.75 ? 0.65 : 0) : 0;
+  /* mode 1 lifts to frame the ghosted spread (further on tall screens,
+     where the valves otherwise crop off the top); mode 2 drops the
+     engine below the measured narration band at both widths */
+  const tall = innerWidth / innerHeight < 0.75;
+  const xrayLift = mode === 1 ? (tall ? 2.0 : 1.1) : mode === 2 ? (tall ? 1.5 : 1.45) : 0;
   controls.target.y = lerp(controls.target.y, baseTargetY + xrayLift, 1 - Math.exp(-2.2 * dt));
   stepSprings(dt);
   controls.update();
