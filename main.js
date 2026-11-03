@@ -40,7 +40,11 @@ sun.position.set(4, 8, 5);
 scene.add(sun);
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 2.2, 0);
+/* look a touch lower so the engine rides higher in frame, reserving the
+   bottom band for the hint line (no card, no pill) - tall screens lift
+   further, laptop gets a milder lift plus a slightly longer camera */
+let baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 1.9;
+controls.target.set(0, baseTargetY, 0);
 controls.enablePan = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -52,6 +56,7 @@ controls.autoRotate = !reducedMotion;
 controls.autoRotateSpeed = 0.8;
 
 function resize() {
+  baseTargetY = innerWidth / innerHeight < 0.75 ? 1.55 : 1.9;
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
@@ -74,7 +79,7 @@ const INK = "#33241c";
 function inkify(mesh, thickness = 1.03) {
   const hull = new THREE.Mesh(
     mesh.geometry,
-    new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide })
+    new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide, transparent: true })
   );
   hull.scale.setScalar(thickness);
   hull.rotation.set((Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.02);
@@ -163,7 +168,8 @@ engine.add(rod);
 
 /* ink every solid part; ghost edges on the exterior for x-ray */
 [ piston, valveIn, valveOut, injector, rod ].forEach((m) => inkify(m, 1.045));
-[ block, head, shell ].forEach((m) => inkify(m, 1.03));
+const hulls = new Map();
+[ block, head, shell ].forEach((m) => hulls.set(m, inkify(m, 1.03)));
 crankAxle.rotation.set(0, 0, 0); inkify(crankAxle, 1.05); crankAxle.rotation.z = Math.PI / 2;
 inkify(crankWeb, 1.06);
 const ghosts = new Map();
@@ -223,6 +229,18 @@ labeledParts.forEach((p) => {
   leaderPaths.set(p, path);
 });
 const tmpV = new THREE.Vector3();
+/* top band reserved for the narration banner while it runs (mode 2).
+   Measured from the live DOM, so it holds at any width, font or safe-area.
+   94 matches the long-standing stacking floor when no banner is up. */
+let reserveCacheW = -1, reserveCacheY = 94;
+function topReserveY() {
+  if (mode !== 2) return 94;
+  if (reserveCacheW !== innerWidth) {
+    reserveCacheW = innerWidth;
+    reserveCacheY = oneliner.getBoundingClientRect().bottom + 30;
+  }
+  return reserveCacheY;
+}
 function projectLabels() {
   const show = mode === 1 || mode === 2;
   const w = innerWidth, h = innerHeight;
@@ -251,7 +269,7 @@ function projectLabels() {
     columns[1][1] = items.filter((it) => it.side === 1).sort((a, b) => a.ay - b.ay);
   }
   for (const [side0, col] of columns) {
-    let prevY = 60;
+    let prevY = topReserveY() - 34;
     for (const it of col) {
       let ly = Math.max(prevY + 34, it.ay - 18);
       ly = Math.min(h - 110, ly);
@@ -273,7 +291,13 @@ function setXrayTargets(on) {
   for (const [mesh, edges] of ghosts) {
     spring(edges.material, "opacity", on ? 0.9 : 0, { stiffness: 40, damping: 10 });
     spring(mesh.material, "opacity", on ? 0.16 : (mesh === shell ? 0.45 : 1), { stiffness: 40, damping: 10 });
-    mesh.material.transparent = true;
+    /* turning transparency on after first compile needs a shader rebuild,
+       or the opacity spring is silently ignored (block/head stayed solid) */
+    if (!mesh.material.transparent) { mesh.material.transparent = true; mesh.material.needsUpdate = true; }
+    /* the ink hull is a second opaque skin: fade it too, or x-ray shows a
+       dark inverted shell where the part was */
+    const hull = hulls.get(mesh);
+    if (hull) spring(hull.material, "opacity", on ? 0 : 1, { stiffness: 40, damping: 10 });
   }
 }
 
@@ -297,7 +321,7 @@ const cardText = document.getElementById("card-text");
 const chrome = [...document.querySelectorAll(".chrome")].filter((c) => c.id !== "modes");
 const modeBtns = [...document.querySelectorAll(".modebtn")];
 let mode = 0;
-let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10;
+let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10.9;
 
 const HINTS = [
   "Drag to spin it around",
@@ -308,7 +332,7 @@ const MAGIC = "Diesel secret: there is NO spark plug! The squeeze alone makes th
 
 function setMode(m) {
   mode = m;
-  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10) + (m === 1 ? 8.0 : 0);
+  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0);
   modeBtns.forEach((b, i) => b.classList.toggle("active", i === m));
   controls.autoRotate = m === 0 && !reducedMotion;
   card.classList.remove("show");
@@ -435,7 +459,10 @@ function tick() {
 
   const len = camera.position.length();
   camera.position.setLength(lerp(len, camDist, 1 - Math.exp(-2.2 * dt)));
-  controls.target.y = lerp(controls.target.y, mode === 1 ? 3.4 : 2.2, 1 - Math.exp(-2.2 * dt));
+  /* mode 1 lifts to frame the ghosted spread; mode 2 adds a small lift on
+     tall screens so the top labels stay below the narration banner band */
+  const xrayLift = mode === 1 ? 1.1 : mode === 2 ? (innerWidth / innerHeight < 0.75 ? 0.65 : 0) : 0;
+  controls.target.y = lerp(controls.target.y, baseTargetY + xrayLift, 1 - Math.exp(-2.2 * dt));
   stepSprings(dt);
   controls.update();
   projectLabels();
