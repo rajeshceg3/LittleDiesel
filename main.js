@@ -345,7 +345,12 @@ function setMode(m) {
   mode = m;
   /* mode 2 pulls back so the whole engine fits between the narration
      band and the hint band - genuinely separate space, both widths */
-  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? (innerWidth / innerHeight < 0.75 ? 8.0 : 9.6) : 0) + (m === 2 ? (innerWidth / innerHeight < 0.75 ? 1.5 : 8.5) : 0);
+  camDist = (innerWidth / innerHeight < 0.75 ? 13 : 10.9) + (m === 1 ? 8.0 : 0) + (m === 2 ? (innerWidth / innerHeight < 0.75 ? 1.5 : 8.5) : 0);
+  /* laptop Peek inside: the spread is taller than the screen at the default
+     max distance, so allow a slightly longer camera there (and only there) */
+  const wideXray = m === 1 && innerWidth / innerHeight >= 0.75;
+  if (wideXray) camDist = 12.4;
+  controls.maxDistance = wideXray ? 12.4 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
