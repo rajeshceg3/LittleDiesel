@@ -291,9 +291,10 @@ function projectLabels() {
         : (side < 0 ? half : w - half);
       const lx = Math.max(half, Math.min(w - half, lx0));
       it.el.style.transform = `translate(${Math.round(lx)}px, ${Math.round(ly)}px) translate(-50%, -100%)`;
-      const kx = (it.ax + lx) / 2 + side * 8;
-      const ky = (it.ay + ly) / 2 - 6;
-      it.path.setAttribute("d", `M ${it.ax.toFixed(1)} ${it.ay.toFixed(1)} Q ${kx.toFixed(1)} ${ky.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)}`);
+      // End outside the nearest label edge, never under its letters.
+      const edgeX=lx+(it.ax<lx?-1:1)*(it.el.offsetWidth/2+6);
+      const edgeY=ly-it.el.offsetHeight/2;
+      it.path.setAttribute("d", `M ${it.ax.toFixed(1)} ${it.ay.toFixed(1)} L ${edgeX.toFixed(1)} ${edgeY.toFixed(1)}`);
       it.el.classList.add("on"); it.path.classList.add("on");
       prevY = ly;
     }
