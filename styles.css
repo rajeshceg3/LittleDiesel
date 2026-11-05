@@ -150,3 +150,16 @@ body::after {
 }
 .modebtn:active { transform: translate(2px, 3px); box-shadow: 1px 1px 0 rgba(51, 36, 28, 0.85); }
 .modebtn.active { background: #e8735a; box-shadow: 3px 4px 0 rgba(51, 36, 28, 0.85); }
+
+/* diesel secret: a compact note in the narration band at the top, so the
+   engine stays visible while it is read (part cards keep the bottom spot) */
+#card.secret {
+  top: 0.8rem; bottom: auto; left: 50%; right: auto;
+  width: min(34rem, calc(100vw - 2.2rem));
+  padding: 0.7rem 1rem 0.9rem;
+  transform: translate(-50%, -24px) scale(0.96);
+}
+#card.secret.show { transform: translateX(-50%); }
+#card.secret h2 { font-size: 1.45rem; margin-bottom: 0.1rem; }
+#card.secret p { font-size: 1rem; line-height: 1.3; }
+#card.secret #card-ok { margin-top: 0.55rem; min-height: 44px; font-size: 1.05rem; }
