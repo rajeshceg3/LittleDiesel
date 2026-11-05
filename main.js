@@ -357,8 +357,8 @@ function setMode(m) {
   /* phone Peek inside: same clamp, a little more room so the lifted valve
      clears the top edge */
   const phoneXray = m === 1 && innerWidth / innerHeight < 0.75;
-  if (phoneXray) camDist = 12.4;
-  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : phoneXray ? 12.4 : 11;
+  if (phoneXray) camDist = 14;
+  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : phoneXray ? 14 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
