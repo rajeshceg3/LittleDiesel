@@ -320,7 +320,7 @@ const STROKES = [
   { word: "Puff out!", line: "The smoke puffs out. Phew! And it all starts again." },
 ];
 const STROKE_T = 2.0;
-let cycleT = 0, lastStroke = -1, boomSeen = false, graceT = 0;
+let cycleT = 0, lastStroke = -1, boomSeen = false, graceUntil = 0;
 
 /* ---------- modes + chrome ---------- */
 const banner = document.getElementById("banner");
@@ -380,7 +380,7 @@ function setMode(m) {
     cycleT = 0; lastStroke = -1; boomSeen = false;
     /* let the camera finish easing before the first headline appears, so the
        lifted valves never pass through the narration */
-    graceT = prevMode === 1 ? 2.1 : 1.2;
+    graceUntil = performance.now() + (prevMode === 1 ? 2100 : 1200);
   } else {
     setTimeout(() => { if (mode !== 2) { banner.classList.remove("pop"); oneliner.classList.remove("show"); } }, 400);
   }
@@ -433,13 +433,14 @@ function tick() {
   const t = clock.elapsedTime;
 
   if (mode === 2) {
-    if (graceT > 0) graceT -= dt; else cycleT += dt;
+    const inGrace = performance.now() < graceUntil;
+    if (!inGrace) cycleT += dt;
     const ph = (cycleT / STROKE_T) % 4;
     const stroke = Math.floor(ph);
     const f = ph - stroke;
     const ease = f * f * (3 - 2 * f);
 
-    if (graceT <= 0 && stroke !== lastStroke) {
+    if (!inGrace && stroke !== lastStroke) {
       lastStroke = stroke;
       banner.textContent = STROKES[stroke].word;
       banner.classList.remove("pop"); void banner.offsetWidth;
