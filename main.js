@@ -320,7 +320,7 @@ const STROKES = [
   { word: "Puff out!", line: "The smoke puffs out. Phew! And it all starts again." },
 ];
 const STROKE_T = 2.0;
-let cycleT = 0, lastStroke = -1, boomSeen = false;
+let cycleT = 0, lastStroke = -1, boomSeen = false, graceT = 0;
 
 /* ---------- modes + chrome ---------- */
 const banner = document.getElementById("banner");
@@ -342,6 +342,7 @@ const HINTS = [
 const MAGIC = "Diesel secret: NO spark plug! The squeeze alone makes the air so hot, the fuel lights by itself.";
 
 function setMode(m) {
+  const prevMode = mode;
   mode = m;
   /* mode 2 pulls back so the whole engine fits between the narration
      band and the hint band - genuinely separate space, both widths */
@@ -377,6 +378,9 @@ function setMode(m) {
   }
   if (m === 2) {
     cycleT = 0; lastStroke = -1; boomSeen = false;
+    /* let the camera finish easing before the first headline appears, so the
+       lifted valves never pass through the narration */
+    graceT = prevMode === 1 ? 1.4 : 1.0;
   } else {
     setTimeout(() => { if (mode !== 2) { banner.classList.remove("pop"); oneliner.classList.remove("show"); } }, 400);
   }
@@ -429,7 +433,7 @@ function tick() {
   const t = clock.elapsedTime;
 
   if (mode === 2) {
-    cycleT += dt;
+    if (graceT > 0) graceT -= dt; else cycleT += dt;
     const ph = (cycleT / STROKE_T) % 4;
     const stroke = Math.floor(ph);
     const f = ph - stroke;
