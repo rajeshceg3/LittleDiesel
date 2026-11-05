@@ -339,7 +339,7 @@ const HINTS = [
   "Tap a part to meet it",
   "Watch it go - four moves, over and over",
 ];
-const MAGIC = "Diesel secret: there is NO spark plug! The squeeze alone makes the air so hot, the fuel bursts into flame all by itself.";
+const MAGIC = "There is NO spark plug! The squeeze alone makes the air so hot, the fuel bursts into flame all by itself.";
 
 function setMode(m) {
   mode = m;
@@ -406,6 +406,7 @@ canvas.addEventListener("pointerup", (e) => {
     const p = hit.object.userData.part;
     cardName.textContent = p.name;
     cardText.textContent = p.text;
+    card.classList.remove("secret");
     card.classList.add("show");
     spring(p.mesh.scale, "x", 1.18, { stiffness: 90, damping: 7 });
     spring(p.mesh.scale, "y", 1.18, { stiffness: 90, damping: 7 });
@@ -440,7 +441,7 @@ function tick() {
       if (stroke === 2 && !boomSeen) {
         boomSeen = true;
         setTimeout(() => {
-          if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("show"); }
+          if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("secret", "show"); }
         }, 2600);
       }
     }
