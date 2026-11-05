@@ -339,7 +339,7 @@ const HINTS = [
   "Tap a part to meet it",
   "Watch it go - four moves, over and over",
 ];
-const MAGIC = "There is NO spark plug! The squeeze alone makes the air so hot, the fuel bursts into flame all by itself.";
+const MAGIC = "Diesel secret: NO spark plug! The squeeze alone makes the air so hot, the fuel lights by itself.";
 
 function setMode(m) {
   mode = m;
@@ -354,7 +354,11 @@ function setMode(m) {
      back a little (OrbitControls clamps to maxDistance, so raise it too) */
   const wideGo = m === 2 && innerWidth / innerHeight >= 0.75;
   if (wideGo) camDist = 15.5;
-  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : 11;
+  /* phone Peek inside: same clamp, a little more room so the lifted valve
+     clears the top edge */
+  const phoneXray = m === 1 && innerWidth / innerHeight < 0.75;
+  if (phoneXray) camDist = 12.4;
+  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : phoneXray ? 12.4 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
