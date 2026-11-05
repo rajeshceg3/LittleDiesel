@@ -262,19 +262,30 @@ function projectLabels() {
       side: i % 2 === 0 ? -1 : 1,
     });
   });
+  /* wide screens: leftmost parts get left-hand labels, rightmost get right,
+     so leader lines do not run across neighbouring parts */
+  if (w >= 500) {
+    const byX = items.slice().sort((a, b) => a.ax - b.ax);
+    byX.forEach((it, k) => { it.side = k < byX.length / 2 ? -1 : 1; });
+  }
   /* second pass: stack per side with a minimum gap so labels never collide */
   const columns = w < 500 ? [[0, items.slice().sort((a, b) => a.ay - b.ay)]] : [[-1, []], [1, []]];
   if (w >= 500) {
     columns[0][1] = items.filter((it) => it.side === -1).sort((a, b) => a.ay - b.ay);
     columns[1][1] = items.filter((it) => it.side === 1).sort((a, b) => a.ay - b.ay);
   }
+  const minAx = Math.min(...items.map((it) => it.ax)), maxAx = Math.max(...items.map((it) => it.ax));
   for (const [side0, col] of columns) {
     let prevY = topReserveY() - 34;
     for (const it of col) {
       let ly = Math.max(prevY + 34, it.ay - 18);
       ly = Math.min(h - 110, ly);
       const side = w < 500 ? (it.ax < w / 2 ? -1 : 1) : it.side;
-      const lx = Math.max(70, Math.min(w - 70, it.ax + side * Math.min(w * 0.24, 130)));
+      /* wide screens: park each label column just outside the whole model
+         so a label never sits on a neighbouring part */
+      const lx = w >= 500
+        ? Math.max(70, Math.min(w - 70, side < 0 ? minAx - 125 : maxAx + 125))
+        : Math.max(70, Math.min(w - 70, it.ax + side * Math.min(w * 0.24, 130)));
       it.el.style.transform = `translate(${Math.round(lx)}px, ${Math.round(ly)}px) translate(-50%, -100%)`;
       const kx = (it.ax + lx) / 2 + side * 8;
       const ky = (it.ay + ly) / 2 - 6;
