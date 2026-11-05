@@ -325,6 +325,12 @@ const STROKES = [
 ];
 const STROKE_T = 2.0;
 let cycleT = 0, lastStroke = -1, boomSeen = false, graceUntil = 0, graceMax = 0;
+/* learner-paced stepping: the default way through the four moves is one
+   press, one move, then the engine waits for the next press */
+let stepMode = true;    /* true: Next! advances one stroke; false: runs on its own */
+let stepRunning = false; /* a pressed stroke is animating right now */
+let curStroke = -1;      /* stroke playing or last played in step mode (-1 = none yet) */
+let runUntil = 0;        /* absolute cycleT where the current step pauses */
 
 /* ---------- modes + chrome ---------- */
 const banner = document.getElementById("banner");
@@ -335,6 +341,9 @@ const cardName = document.getElementById("card-name");
 const cardText = document.getElementById("card-text");
 const chrome = [...document.querySelectorAll(".chrome")].filter((c) => c.id !== "modes");
 const modeBtns = [...document.querySelectorAll(".modebtn")];
+const stepui = document.getElementById("stepui");
+const nextBtn = document.getElementById("next");
+const autoBtn = document.getElementById("autotoggle");
 let mode = 0;
 let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10.9;
 
@@ -373,6 +382,7 @@ function setMode(m) {
   });
   controls.autoRotate = m === 0 && !reducedMotion;
   card.classList.remove("show");
+  stepui.classList.remove("show");
   hint.textContent = HINTS[m];
   hint.classList.add("show");
   if (m === 1) {
@@ -385,6 +395,8 @@ function setMode(m) {
   }
   if (m === 2) {
     cycleT = 0; lastStroke = -1; boomSeen = false;
+    curStroke = -1; stepRunning = false; runUntil = 0;
+    updateStepUI();
     /* let the camera finish easing before the first headline appears, so the
        lifted valves never pass through the narration */
     graceUntil = performance.now() + (prevMode === 1 ? 2100 : 1200);
@@ -395,6 +407,52 @@ function setMode(m) {
   wakeChrome();
 }
 modeBtns.forEach((b, i) => b.addEventListener("click", () => setMode(i)));
+
+/* step mode hides the hint: the pulsing button is the invitation.
+   run mode brings back the original "watch it go" hint. */
+function updateStepUI() {
+  if (mode !== 2) { stepui.classList.remove("show"); return; }
+  stepui.classList.add("show");
+  if (stepMode) {
+    nextBtn.hidden = stepRunning;
+    nextBtn.textContent = curStroke < 0 ? "Go!" : curStroke >= 3 ? "Go again!" : "Next!";
+    nextBtn.classList.toggle("invite", !stepRunning && !reducedMotion);
+    autoBtn.textContent = "Let it run";
+    hint.classList.remove("show");
+  } else {
+    nextBtn.hidden = true;
+    autoBtn.textContent = "Step it";
+    hint.textContent = HINTS[2];
+    hint.classList.add("show");
+  }
+}
+
+nextBtn.addEventListener("click", () => {
+  if (mode !== 2 || !stepMode || stepRunning) return;
+  if (curStroke >= 3) { cycleT = 0; curStroke = -1; }
+  curStroke++;
+  runUntil = cycleT + STROKE_T;
+  stepRunning = true;
+  updateStepUI();
+  wakeChrome();
+});
+
+autoBtn.addEventListener("click", () => {
+  if (mode !== 2) return;
+  stepMode = !stepMode;
+  if (stepMode) {
+    /* pause at the end of the stroke already in flight, never rewind */
+    curStroke = Math.floor((cycleT / STROKE_T) % 4);
+    runUntil = (Math.floor(cycleT / STROKE_T) + 1) * STROKE_T;
+    stepRunning = true;
+  } else {
+    /* the paused pose sits exactly on a stroke boundary, so the cycle
+       simply continues into the next move */
+    stepRunning = false;
+  }
+  updateStepUI();
+  wakeChrome();
+});
 
 document.getElementById("card-ok").addEventListener("click", () => {
   card.classList.remove("show");
@@ -444,14 +502,23 @@ function tick() {
     const nowMs = performance.now();
     /* wait for the minimum pause AND for the camera to arrive (but never
        longer than 5s, so a slow device is not left without narration) */
-    const inGrace = nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45);
-    if (!inGrace) cycleT += dt;
-    const ph = (cycleT / STROKE_T) % 4;
+    /* the camera grace only matters when running on its own; a pressed
+       step starts right away so an eager tap always sticks */
+    const inGrace = !stepMode && (nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45));
+    if (!inGrace && (!stepMode || stepRunning)) cycleT += dt;
+    if (stepMode && stepRunning && cycleT >= runUntil) {
+      cycleT = runUntil;
+      stepRunning = false;
+      updateStepUI();
+    }
+    /* paused: hold the last played stroke at its end pose, so the scene,
+       labels and dots freeze mid-lesson instead of peeking the next move */
+    const ph = stepMode && !stepRunning ? (curStroke < 0 ? 0 : curStroke + 0.9999) : (cycleT / STROKE_T) % 4;
     const stroke = Math.floor(ph);
     const f = ph - stroke;
     const ease = f * f * (3 - 2 * f);
 
-    if (!inGrace && stroke !== lastStroke) {
+    if (!inGrace && stroke !== lastStroke && (!stepMode || stepRunning)) {
       lastStroke = stroke;
       banner.textContent = STROKES[stroke].word;
       banner.classList.remove("pop"); void banner.offsetWidth;
