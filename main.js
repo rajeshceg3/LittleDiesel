@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {questions,transfer,createLesson,reduceLesson} from "./learning.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
@@ -307,7 +308,7 @@ const tmpV = new THREE.Vector3();
 let reserveCacheW = -1, reserveCacheY = 94;
 function topReserveY() {
   if (mode !== 2) return 94;
-  if (reserveCacheW !== innerWidth) {
+  if (true) {
     reserveCacheW = innerWidth;
     reserveCacheY = oneliner.getBoundingClientRect().bottom + 30;
   }
@@ -425,6 +426,54 @@ const stepui = document.getElementById("stepui");
 const nextBtn = document.getElementById("next");
 const autoBtn = document.getElementById("autotoggle");
 let mode = 0;
+let lesson=createLesson(),limitsOpen=false;
+const reasoning=document.getElementById("reasoning"),lessonTools=document.getElementById("lesson-tools");
+function lessonAction(action){lesson=reduceLesson(lesson,action);renderLesson();updateStepUI();}
+function renderLesson(){
+ const active=mode===2&&stepMode;
+ lessonTools.hidden=!active;
+ const phase=lesson.phase;
+ const show=active&&(limitsOpen||["orient","predict","transfer","transferFeedback","teachback"].includes(phase));
+ reasoning.hidden=!show;document.body.classList.toggle("reasoning",show);
+ canvas.inert=show;
+ document.getElementById("previous").disabled=phase==='moving';
+ document.getElementById("restart").disabled=phase==='moving';
+ if(active&&phase==='feedback'&&!limitsOpen){
+  airDots.children.forEach(d=>d.material.opacity=0);smokeDots.children.forEach(d=>d.material.opacity=0);
+  banner.textContent='Next: '+STROKES[lesson.stroke].word;banner.classList.add('pop');
+  oneliner.textContent=questions[lesson.stroke].why[lesson.choices[lesson.stroke]];oneliner.classList.add('show');
+ }
+ if(!show)return;
+ reasoning.replaceChildren();
+ const add=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;reasoning.append(e);if(tag==='h2'){e.tabIndex=-1;queueMicrotask(()=>e.focus({preventScroll:true}));}return e;};
+ const button=(text,fn,minor=false)=>{const b=add('button',text);b.type='button';if(minor)b.className='minor';b.onclick=fn;return b;};
+ if(limitsOpen){add('h2','A model, not a whole engine');add('p','One cylinder and four strokes. Colours show changing conditions, not measured temperature. Parts are not to scale. Real valve timing, camshaft, lubrication and starter are left out.');add('p','The crank and rod show the motion connection. This is not a calculation of pressure, efficiency or whether a real engine would start.');button('Back to the lesson',()=>{limitsOpen=false;renderLesson();});return;}
+ if(phase==='orient'){
+  add('h2','How can fuel turn a wheel without a spark plug?');add('p','Follow one cylinder: air goes in, gets squeezed hot, fuel burns, and used gas goes out. The piston pushes a jointed rod that turns the crank.');button('Think through the first move',()=>lessonAction({type:'start'}));button('Explore the moving engine instead',()=>{stepMode=false;updateStepUI();renderLesson();},true);return;
+ }
+ if(phase==='predict'){
+  const q=questions[lesson.stroke];add('h2',q.title);
+  // Rotate correct-answer positions so location is not the answer.
+  [0,1,2].map(i=>(i+lesson.stroke)%3).forEach(i=>button(q.choices[i],()=>lessonAction({type:'answer',choice:i})));
+  button('Show me this move first',()=>lessonAction({type:'skip'}),true);return;
+ }
+ if(phase==='transfer'){
+  add('h2',transfer.title);transfer.choices.forEach((text,i)=>button(text,()=>lessonAction({type:'answerTransfer',choice:i})));button('Think aloud, then see the takeaway',()=>lessonAction({type:'teachback'}),true);return;
+ }
+ if(phase==='transferFeedback'){
+  add('h2',lesson.transfer===transfer.answer?'The same idea fits this new case.':'Return to trapped air.');add('p',transfer.why[lesson.transfer]);button('Explain it in your own words',()=>lessonAction({type:'teachback'}));return;
+ }
+ add('h2','From fuel to a turning crank');add('p','Try explaining: why must the valves close for the squeeze? When does fuel arrive? What connects the piston to the crank?');button('Compare with the explanation',()=>{const e=add('p','Compression heats trapped air; injected fuel burns in it; expanding gas pushes the piston; the rod turns the offset crank. Only the power stroke adds combustion energy. The crank and flywheel carry motion through the other strokes.');e.scrollIntoView({block:'nearest'});},true);button('Try the lesson again',resetLesson);button('Explore the full cycle',()=>{stepMode=false;updateStepUI();renderLesson();},true);
+}
+function resetLesson(){stepMode=true;lesson=createLesson();curStroke=-1;cycleT=0;lastStroke=-1;stepRunning=false;runUntil=0;boomSeen=false;clearTimeout(secretTimer);card.classList.remove('show');limitsOpen=false;crank.position.y=1;piston.position.y=2.6;linkage(0);renderLesson();updateStepUI();}
+document.getElementById('restart').onclick=resetLesson;
+document.getElementById('model-note').onclick=()=>{limitsOpen=true;renderLesson();};
+document.getElementById('previous').onclick=()=>{
+ if(stepRunning)return;
+ lesson=reduceLesson(lesson,{type:'previous'});curStroke=lesson.phase==='orient'?-1:lesson.stroke;cycleT=curStroke<0?0:(curStroke+1)*STROKE_T;lastStroke=curStroke;clearTimeout(secretTimer);card.classList.remove('show');
+ if(curStroke>=0){banner.textContent=STROKES[curStroke].word;oneliner.textContent=STROKES[curStroke].line;}
+ renderLesson();updateStepUI();
+};
 let camDist = innerWidth / innerHeight < 0.75 ? 13 : 10.9;
 
 const HINTS = [
@@ -478,7 +527,7 @@ function setMode(m) {
     crank.position.y=1; piston.position.y=2.6; linkage(0);
     cycleT = 0; lastStroke = -1; boomSeen = false;
     curStroke = -1; stepRunning = false; runUntil = 0;
-    updateStepUI();
+    stepMode=true;lesson=createLesson();limitsOpen=false;renderLesson();updateStepUI();
     /* let the camera finish easing before the first headline appears, so the
        lifted valves never pass through the narration */
     graceUntil = performance.now() + (prevMode === 1 ? 2100 : 1200);
@@ -486,7 +535,7 @@ function setMode(m) {
   } else {
     setTimeout(() => { if (mode !== 2) { banner.classList.remove("pop"); oneliner.classList.remove("show"); } }, 400);
   }
-  wakeChrome();
+  renderLesson();wakeChrome();
 }
 modeBtns.forEach((b, i) => b.addEventListener("click", () => setMode(i)));
 
@@ -497,7 +546,8 @@ function updateStepUI() {
   stepui.classList.add("show");
   if (stepMode) {
     nextBtn.hidden = stepRunning;
-    nextBtn.textContent = curStroke < 0 ? "Go!" : curStroke >= 3 ? "Go again!" : "Next!";
+    nextBtn.textContent = lesson.phase==='held'?(lesson.stroke===3?'Try a new case':'Next idea'):['ready','feedback'].includes(lesson.phase)?'Watch it':'Next!';
+    nextBtn.hidden = stepRunning || !['ready','feedback','held'].includes(lesson.phase);
     nextBtn.classList.toggle("invite", !stepRunning && !reducedMotion);
     autoBtn.textContent = "Let it run";
     hint.classList.remove("show");
@@ -511,8 +561,10 @@ function updateStepUI() {
 
 nextBtn.addEventListener("click", () => {
   if (mode !== 2 || !stepMode || stepRunning) return;
-  if (curStroke >= 3) { cycleT = 0; curStroke = -1; }
-  curStroke++;
+  if(lesson.phase==='held'){lessonAction({type:'next'});return;}
+  if(lesson.phase==='feedback'){lesson=reduceLesson(lesson,{type:'continue'});}
+  if(lesson.phase!=='ready')return;
+  curStroke=lesson.stroke;cycleT=curStroke*STROKE_T;lesson=reduceLesson(lesson,{type:'move'});renderLesson();
   runUntil = cycleT + STROKE_T;
   stepRunning = true;
   updateStepUI();
@@ -522,17 +574,18 @@ nextBtn.addEventListener("click", () => {
 autoBtn.addEventListener("click", () => {
   if (mode !== 2) return;
   stepMode = !stepMode;
+  limitsOpen=false;
   if (stepMode) {
     /* pause at the end of the stroke already in flight, never rewind */
     curStroke = Math.floor((cycleT / STROKE_T) % 4);
     runUntil = (Math.floor(cycleT / STROKE_T) + 1) * STROKE_T;
-    stepRunning = true;
+    stepRunning = true;lesson={...createLesson(),phase:"moving",stroke:curStroke};
   } else {
     /* the paused pose sits exactly on a stroke boundary, so the cycle
        simply continues into the next move */
     stepRunning = false;
   }
-  updateStepUI();
+  updateStepUI();renderLesson();
   wakeChrome();
 });
 
@@ -593,10 +646,10 @@ function tick() {
     /* the camera grace only matters when running on its own; a pressed
        step starts right away so an eager tap always sticks */
     const inGrace = !stepMode && (nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45));
-    if (!suspended && !inGrace && (!stepMode || stepRunning)) cycleT += dt;
+    if (!suspended && !limitsOpen && !inGrace && (!stepMode || stepRunning)) cycleT += dt;
     if (stepMode && stepRunning && cycleT >= runUntil) {
       cycleT = runUntil;
-      stepRunning = false;
+      stepRunning = false;lesson=reduceLesson(lesson,{type:"finish"});renderLesson();
       updateStepUI();
     }
     /* paused: hold the last played stroke at its end pose, so the scene,
@@ -612,8 +665,12 @@ function tick() {
       banner.classList.remove("pop"); void banner.offsetWidth;
       banner.classList.add("pop");
       oneliner.textContent = STROKES[stroke].line;
+      if(stepMode && lesson.choices[stroke]!==null && lesson.choices[stroke]!==questions[stroke].answer){
+        const corrections=['Air enters first. Fuel is injected later.','Both valves close: trapped air heats as the piston rises.','No spark plug: injected fuel burns in compressed hot air.','The rising piston pushes used gas through the exhaust.'];
+        oneliner.textContent=corrections[stroke];
+      }
       oneliner.classList.add("show");
-      if (stroke === 2 && !boomSeen) {
+      if (!stepMode && stroke === 2 && !boomSeen) {
         boomSeen = true;
         secretTimer = setTimeout(() => {
           if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("secret", "show"); }
@@ -646,12 +703,12 @@ function tick() {
     airDots.children.forEach((d, i) => {
       const ff = (f + i * 0.16) % 1;
       d.position.set(-0.55 + Math.sin(i * 2.1) * 0.15, 3.9 - ff * 0.8, Math.cos(i * 1.7) * 0.15);
-      d.material.opacity = stroke === 0 ? Math.sin(ff * Math.PI) * 0.9 : 0;
+      d.material.opacity = stroke === 0 && lesson.phase!=='feedback' ? Math.sin(ff * Math.PI) * 0.9 : 0;
     });
     smokeDots.children.forEach((d, i) => {
       const ff = (f + i * 0.16) % 1;
       d.position.set(0.55 + Math.sin(i * 1.9) * 0.2 + ff * 0.5, 3.4 + ff * 1.3, Math.cos(i * 2.3) * 0.2);
-      d.material.opacity = stroke === 3 ? Math.sin(ff * Math.PI) * 0.7 : 0;
+      d.material.opacity = stroke === 3 && lesson.phase!=='feedback' ? Math.sin(ff * Math.PI) * 0.7 : 0;
       d.scale.setScalar(1 + ff * 1.6);
     });
   } else {
