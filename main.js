@@ -283,9 +283,13 @@ function projectLabels() {
       const side = w < 500 ? (it.ax < w / 2 ? -1 : 1) : it.side;
       /* wide screens: park each label column just outside the whole model
          so a label never sits on a neighbouring part */
-      const lx = w >= 500
+      /* phones: park labels in the outer margins (measured width) so they
+         neither touch the model nor run past the screen edge */
+      const half = it.el.offsetWidth / 2 + 8;
+      const lx0 = w >= 500
         ? Math.max(70, Math.min(w - 70, side < 0 ? minAx - 125 : maxAx + 125))
-        : Math.max(70, Math.min(w - 70, it.ax + side * Math.min(w * 0.24, 130)));
+        : (side < 0 ? half : w - half);
+      const lx = Math.max(half, Math.min(w - half, lx0));
       it.el.style.transform = `translate(${Math.round(lx)}px, ${Math.round(ly)}px) translate(-50%, -100%)`;
       const kx = (it.ax + lx) / 2 + side * 8;
       const ky = (it.ay + ly) / 2 - 6;
@@ -320,7 +324,7 @@ const STROKES = [
   { word: "Puff out!", line: "The smoke puffs out. Phew! And it all starts again." },
 ];
 const STROKE_T = 2.0;
-let cycleT = 0, lastStroke = -1, boomSeen = false;
+let cycleT = 0, lastStroke = -1, boomSeen = false, graceUntil = 0, graceMax = 0;
 
 /* ---------- modes + chrome ---------- */
 const banner = document.getElementById("banner");
@@ -339,9 +343,13 @@ const HINTS = [
   "Tap a part to meet it",
   "Watch it go - four moves, over and over",
 ];
-const MAGIC = "Diesel secret: there is NO spark plug! The squeeze alone makes the air so hot, the fuel bursts into flame all by itself.";
+const MAGIC = "Diesel secret: NO spark plug! The squeeze alone makes the air so hot, the fuel lights by itself.";
 
+let secretTimer = 0;
 function setMode(m) {
+  const prevMode = mode;
+  /* a pending secret-card timer from an earlier visit must not fire late */
+  clearTimeout(secretTimer);
   mode = m;
   /* mode 2 pulls back so the whole engine fits between the narration
      band and the hint band - genuinely separate space, both widths */
@@ -350,7 +358,15 @@ function setMode(m) {
      max distance, so allow a slightly longer camera there (and only there) */
   const wideXray = m === 1 && innerWidth / innerHeight >= 0.75;
   if (wideXray) camDist = 14;
-  controls.maxDistance = wideXray ? 14 : 11;
+  /* laptop Make it go: the swept crank must clear the bottom hint, so pull
+     back a little (OrbitControls clamps to maxDistance, so raise it too) */
+  const wideGo = m === 2 && innerWidth / innerHeight >= 0.75;
+  if (wideGo) camDist = 15.5;
+  /* phone Peek inside: same clamp, a little more room so the lifted valve
+     clears the top edge */
+  const phoneXray = m === 1 && innerWidth / innerHeight < 0.75;
+  if (phoneXray) camDist = 14;
+  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : phoneXray ? 14 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
@@ -369,6 +385,10 @@ function setMode(m) {
   }
   if (m === 2) {
     cycleT = 0; lastStroke = -1; boomSeen = false;
+    /* let the camera finish easing before the first headline appears, so the
+       lifted valves never pass through the narration */
+    graceUntil = performance.now() + (prevMode === 1 ? 2100 : 1200);
+    graceMax = performance.now() + 5000;
   } else {
     setTimeout(() => { if (mode !== 2) { banner.classList.remove("pop"); oneliner.classList.remove("show"); } }, 400);
   }
@@ -402,6 +422,7 @@ canvas.addEventListener("pointerup", (e) => {
     const p = hit.object.userData.part;
     cardName.textContent = p.name;
     cardText.textContent = p.text;
+    card.classList.remove("secret");
     card.classList.add("show");
     spring(p.mesh.scale, "x", 1.18, { stiffness: 90, damping: 7 });
     spring(p.mesh.scale, "y", 1.18, { stiffness: 90, damping: 7 });
@@ -420,13 +441,17 @@ function tick() {
   const t = clock.elapsedTime;
 
   if (mode === 2) {
-    cycleT += dt;
+    const nowMs = performance.now();
+    /* wait for the minimum pause AND for the camera to arrive (but never
+       longer than 5s, so a slow device is not left without narration) */
+    const inGrace = nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45);
+    if (!inGrace) cycleT += dt;
     const ph = (cycleT / STROKE_T) % 4;
     const stroke = Math.floor(ph);
     const f = ph - stroke;
     const ease = f * f * (3 - 2 * f);
 
-    if (stroke !== lastStroke) {
+    if (!inGrace && stroke !== lastStroke) {
       lastStroke = stroke;
       banner.textContent = STROKES[stroke].word;
       banner.classList.remove("pop"); void banner.offsetWidth;
@@ -435,8 +460,8 @@ function tick() {
       oneliner.classList.add("show");
       if (stroke === 2 && !boomSeen) {
         boomSeen = true;
-        setTimeout(() => {
-          if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("show"); }
+        secretTimer = setTimeout(() => {
+          if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("secret", "show"); }
         }, 2600);
       }
     }
@@ -499,9 +524,11 @@ tick();
 /* ---------- veil ---------- */
 setTimeout(() => {
   document.getElementById("veil").classList.add("gone");
-  modeBtns[0].classList.add("active");
-  modeBtns[0].setAttribute("aria-current", "true");
-  hint.textContent = HINTS[0];
+  if (mode === 0) {
+    modeBtns[0].classList.add("active");
+    modeBtns[0].setAttribute("aria-current", "true");
+    hint.textContent = HINTS[0];
+  }
   setTimeout(() => hint.classList.add("show"), 800);
   wakeChrome();
 }, 1900);
