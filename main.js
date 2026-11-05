@@ -350,7 +350,11 @@ function setMode(m) {
      max distance, so allow a slightly longer camera there (and only there) */
   const wideXray = m === 1 && innerWidth / innerHeight >= 0.75;
   if (wideXray) camDist = 14;
-  controls.maxDistance = wideXray ? 14 : 11;
+  /* laptop Make it go: the swept crank must clear the bottom hint, so pull
+     back a little (OrbitControls clamps to maxDistance, so raise it too) */
+  const wideGo = m === 2 && innerWidth / innerHeight >= 0.75;
+  if (wideGo) camDist = 12.6;
+  controls.maxDistance = wideXray ? 14 : wideGo ? 12.6 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
@@ -499,9 +503,11 @@ tick();
 /* ---------- veil ---------- */
 setTimeout(() => {
   document.getElementById("veil").classList.add("gone");
-  modeBtns[0].classList.add("active");
-  modeBtns[0].setAttribute("aria-current", "true");
-  hint.textContent = HINTS[0];
+  if (mode === 0) {
+    modeBtns[0].classList.add("active");
+    modeBtns[0].setAttribute("aria-current", "true");
+    hint.textContent = HINTS[0];
+  }
   setTimeout(() => hint.classList.add("show"), 800);
   wakeChrome();
 }, 1900);
