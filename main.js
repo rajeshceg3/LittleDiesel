@@ -439,7 +439,7 @@ function tick() {
     const f = ph - stroke;
     const ease = f * f * (3 - 2 * f);
 
-    if (stroke !== lastStroke) {
+    if (graceT <= 0 && stroke !== lastStroke) {
       lastStroke = stroke;
       banner.textContent = STROKES[stroke].word;
       banner.classList.remove("pop"); void banner.offsetWidth;
