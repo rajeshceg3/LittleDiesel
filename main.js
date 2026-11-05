@@ -345,8 +345,11 @@ const HINTS = [
 ];
 const MAGIC = "Diesel secret: NO spark plug! The squeeze alone makes the air so hot, the fuel lights by itself.";
 
+let secretTimer = 0;
 function setMode(m) {
   const prevMode = mode;
+  /* a pending secret-card timer from an earlier visit must not fire late */
+  clearTimeout(secretTimer);
   mode = m;
   /* mode 2 pulls back so the whole engine fits between the narration
      band and the hint band - genuinely separate space, both widths */
@@ -457,7 +460,7 @@ function tick() {
       oneliner.classList.add("show");
       if (stroke === 2 && !boomSeen) {
         boomSeen = true;
-        setTimeout(() => {
+        secretTimer = setTimeout(() => {
           if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("secret", "show"); }
         }, 2600);
       }
