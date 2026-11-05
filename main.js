@@ -353,8 +353,8 @@ function setMode(m) {
   /* laptop Make it go: the swept crank must clear the bottom hint, so pull
      back a little (OrbitControls clamps to maxDistance, so raise it too) */
   const wideGo = m === 2 && innerWidth / innerHeight >= 0.75;
-  if (wideGo) camDist = 12.6;
-  controls.maxDistance = wideXray ? 14 : wideGo ? 12.6 : 11;
+  if (wideGo) camDist = 15.5;
+  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
