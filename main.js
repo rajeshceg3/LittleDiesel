@@ -283,9 +283,13 @@ function projectLabels() {
       const side = w < 500 ? (it.ax < w / 2 ? -1 : 1) : it.side;
       /* wide screens: park each label column just outside the whole model
          so a label never sits on a neighbouring part */
-      const lx = w >= 500
+      /* phones: park labels in the outer margins (measured width) so they
+         neither touch the model nor run past the screen edge */
+      const half = it.el.offsetWidth / 2 + 8;
+      const lx0 = w >= 500
         ? Math.max(70, Math.min(w - 70, side < 0 ? minAx - 125 : maxAx + 125))
-        : Math.max(70, Math.min(w - 70, it.ax + side * Math.min(w * 0.24, 130)));
+        : (side < 0 ? half : w - half);
+      const lx = Math.max(half, Math.min(w - half, lx0));
       it.el.style.transform = `translate(${Math.round(lx)}px, ${Math.round(ly)}px) translate(-50%, -100%)`;
       const kx = (it.ax + lx) / 2 + side * 8;
       const ky = (it.ay + ly) / 2 - 6;
