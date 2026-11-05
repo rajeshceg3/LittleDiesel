@@ -320,7 +320,7 @@ const STROKES = [
   { word: "Puff out!", line: "The smoke puffs out. Phew! And it all starts again." },
 ];
 const STROKE_T = 2.0;
-let cycleT = 0, lastStroke = -1, boomSeen = false, graceUntil = 0;
+let cycleT = 0, lastStroke = -1, boomSeen = false, graceUntil = 0, graceMax = 0;
 
 /* ---------- modes + chrome ---------- */
 const banner = document.getElementById("banner");
@@ -381,6 +381,7 @@ function setMode(m) {
     /* let the camera finish easing before the first headline appears, so the
        lifted valves never pass through the narration */
     graceUntil = performance.now() + (prevMode === 1 ? 2100 : 1200);
+    graceMax = performance.now() + 5000;
   } else {
     setTimeout(() => { if (mode !== 2) { banner.classList.remove("pop"); oneliner.classList.remove("show"); } }, 400);
   }
@@ -433,7 +434,10 @@ function tick() {
   const t = clock.elapsedTime;
 
   if (mode === 2) {
-    const inGrace = performance.now() < graceUntil;
+    const nowMs = performance.now();
+    /* wait for the minimum pause AND for the camera to arrive (but never
+       longer than 5s, so a slow device is not left without narration) */
+    const inGrace = nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45);
     if (!inGrace) cycleT += dt;
     const ph = (cycleT / STROKE_T) % 4;
     const stroke = Math.floor(ph);
