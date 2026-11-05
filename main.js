@@ -349,8 +349,8 @@ function setMode(m) {
   /* laptop Peek inside: the spread is taller than the screen at the default
      max distance, so allow a slightly longer camera there (and only there) */
   const wideXray = m === 1 && innerWidth / innerHeight >= 0.75;
-  if (wideXray) camDist = 12.4;
-  controls.maxDistance = wideXray ? 12.4 : 11;
+  if (wideXray) camDist = 14;
+  controls.maxDistance = wideXray ? 14 : 11;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
