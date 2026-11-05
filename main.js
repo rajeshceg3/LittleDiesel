@@ -31,7 +31,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7eedd");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-camera.position.set(4.8, 3.8, 6.8);
+camera.position.set(4.1, 3.1, 7.8);
 
 const hemi = new THREE.HemisphereLight(0xfff8ec, 0xe6cba6, 1.2);
 scene.add(hemi);
@@ -121,16 +121,27 @@ engine.add(block);
 
 /* cylinder shell (the piston's home) */
 const shell = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.78, 0.78, 2.1, 28, 1, true),
+  new THREE.CylinderGeometry(0.78, 0.78, 2.1, 48, 1, true, Math.PI / 3, Math.PI * 4 / 3),
   new THREE.MeshToonMaterial({ color: "#aebfca", gradientMap: toon3, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
 );
 shell.position.y = 2.25;
 engine.add(shell);
 
 /* piston */
-const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 1.05, 28), clay("#7fb3d5"));
-piston.position.y = 2.2;
+const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.72, 36), clay("#7fb3d5"));
+piston.position.y = 2.6;
 engine.add(piston);
+
+/* Ring grooves, crown bowl and wrist pin distinguish a piston from a can.
+   Schematic details, not the specification of a particular engine. */
+for (const y of [0.20, 0.29]) {
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.625, 0.028, 8, 48), clay("#496c80"));
+  ring.rotation.x = Math.PI / 2; ring.position.y = y; piston.add(ring);
+}
+const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.23, 0.018, 32), clay("#496c80"));
+bowl.position.y = 0.367; piston.add(bowl);
+const wrist = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 1.32, 20), clay("#d6dde0"));
+wrist.rotation.z = Math.PI / 2; piston.add(wrist); inkify(wrist, 1.045);
 
 /* head (the lid) */
 const head = new THREE.Mesh(new RoundedBoxGeometry(2.2, 0.7, 1.7, 4, 0.24), clay("#f2b25c"));
@@ -138,17 +149,42 @@ head.position.y = 3.62;
 engine.add(head);
 
 /* valves: intake + exhaust */
-const valveIn = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.9, 16), clay("#7dcfa0"));
-valveIn.position.set(-0.55, 4.25, 0);
+const valveIn = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.9, 20), clay("#7dcfa0"));
+valveIn.position.set(-0.43, 3.75, 0);
 engine.add(valveIn);
-const valveOut = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.9, 16), clay("#9a8fb8"));
-valveOut.position.set(0.55, 4.25, 0);
+const valveOut = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.9, 20), clay("#9a8fb8"));
+valveOut.position.set(0.43, 3.75, 0);
 engine.add(valveOut);
+
+/* Poppet faces meet the underside of the head; visible springs above it. */
+for (const [v, color] of [[valveIn,"#7dcfa0"],[valveOut,"#9a8fb8"]]) {
+  const face = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.24, 0.075, 28), clay(color));
+  face.position.y = -0.43; v.add(face); inkify(face, 1.04);
+  const points = Array.from({length:97}, (_,i) => {
+    const a=i/96*Math.PI*10; return new THREE.Vector3(Math.cos(a)*0.12,0.13+i/96*0.30,Math.sin(a)*0.12);
+  });
+  const coil = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),96,0.022,6,false),clay("#665b51"));
+  v.add(coil);
+}
+/* Cooling fins and bolts articulate the cylinder head, without new UI. */
+for (const y of [-0.15,0.04,0.23]) {
+  const fin = new THREE.Mesh(new RoundedBoxGeometry(2.3,0.055,1.8,2,0.025),clay("#e5a452"));
+  fin.position.y=y; head.add(fin);
+}
+for (const x of [-0.88,0.88]) for (const z of [-0.62,0.62]) {
+  const bolt=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.08,6),clay("#766652"));
+  bolt.position.set(x,0.39,z);head.add(bolt);
+}
 
 /* fuel injector */
 const injector = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.2, 1.0, 16), clay("#f0924c"));
-injector.position.set(0, 4.3, 0.45);
-injector.rotation.x = 0.35;
+injector.position.set(0, 3.98, 0.22);
+injector.rotation.x = 0.18;
+const nozzle=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.028,0.26,16),clay("#665b51"));
+nozzle.position.y=-0.60;injector.add(nozzle);
+for(const y of [0.14,0.31]) {
+ const collar=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.09,6),clay("#d77937"));collar.position.y=y;injector.add(collar);
+}
 engine.add(injector);
 
 /* crankshaft + rod */
@@ -156,30 +192,64 @@ const crank = new THREE.Group();
 const crankAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 2.2, 20), clay("#8a6f4d"));
 crankAxle.rotation.z = Math.PI / 2;
 crank.add(crankAxle);
-const crankWeb = new THREE.Mesh(new RoundedBoxGeometry(0.28, 0.9, 0.5, 3, 0.1), clay("#e8b64c"));
-crankWeb.position.y = 0.4;
-crank.add(crankWeb);
+/* The crank axle, eccentric journal and rod all share the X axis.
+   The rod joins the journal to the wrist pin with constant length. */
+const crankWeb = new THREE.Mesh(new RoundedBoxGeometry(0.16, 0.74, 0.52, 3, 0.07), clay("#e8b64c"));
+crankWeb.position.set(-0.20, 0.16, 0); crank.add(crankWeb);
+const crankWeb2=crankWeb.clone();crankWeb2.material=crankWeb.material.clone();crankWeb2.position.x=0.20;crank.add(crankWeb2);
+const journal=new THREE.Mesh(new THREE.CylinderGeometry(0.105,0.105,0.56,24),clay("#aab6bd"));
+journal.rotation.z=Math.PI/2;journal.position.y=0.35;crank.add(journal);
+const flywheel=new THREE.Mesh(new THREE.CylinderGeometry(0.68,0.68,0.18,48),clay("#648c92"));
+flywheel.rotation.z=Math.PI/2;flywheel.position.x=-1.1;crank.add(flywheel);inkify(flywheel,1.025);
+for(let i=0;i<6;i++) {
+ const hole=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.19,16),clay("#35565e"));
+ hole.rotation.z=Math.PI/2;hole.position.set(-1.105,Math.cos(i*Math.PI/3)*0.45,Math.sin(i*Math.PI/3)*0.45);crank.add(hole);
+}
 crank.position.y = 1.0;
 engine.add(crank);
-const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 1.6, 12), clay("#c9d4dc"));
-rod.position.set(0, 1.75, 0);
-rod.scale.y = 0.75;
+const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1, 16), clay("#c9d4dc"));
 engine.add(rod);
+const rodEnds=[];
+for (const radius of [0.15,0.115]) {
+ const bearing=new THREE.Mesh(new THREE.TorusGeometry(radius,0.055,8,24),clay("#aab6bd"));
+ bearing.rotation.y=Math.PI/2;engine.add(bearing);rodEnds.push(bearing);inkify(bearing,1.035);
+}
+const CRANK_R=0.35, ROD_L=1.25;
+function linkage(angle, exploded=false) {
+ const pin=new THREE.Vector3(0,crank.position.y+CRANK_R*Math.cos(angle),CRANK_R*Math.sin(angle));
+ const wrist=new THREE.Vector3(0,exploded?pin.y+ROD_L:piston.position.y,0);
+ crank.rotation.x=angle;
+ rod.position.copy(pin).add(wrist).multiplyScalar(0.5);
+ const vector=wrist.clone().sub(pin);
+ rod.scale.y=vector.length();
+ rod.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vector.normalize());
+ rodEnds[0].position.copy(pin);rodEnds[1].position.copy(wrist);
+}
+linkage(0);
 
 /* ink every solid part; ghost edges on the exterior for x-ray */
 [ piston, valveIn, valveOut, injector, rod ].forEach((m) => inkify(m, 1.045));
 const hulls = new Map();
 [ block, head, shell ].forEach((m) => hulls.set(m, inkify(m, 1.03)));
 crankAxle.rotation.set(0, 0, 0); inkify(crankAxle, 1.05); crankAxle.rotation.z = Math.PI / 2;
-inkify(crankWeb, 1.06);
+inkify(crankWeb, 1.06); inkify(crankWeb2,1.06); inkify(journal,1.035);
 const ghosts = new Map();
 [ block, head, shell ].forEach((m) => ghosts.set(m, ghostify(m)));
 
-/* boom flash inside the cylinder */
+/* The chamber occupies only the space above the piston crown.
+   Warmth is a teaching cue, not a simulated temperature. */
 const boomMat = new THREE.MeshBasicMaterial({ color: "#ff9d3c", transparent: true, opacity: 0 });
-const boom = new THREE.Mesh(new THREE.SphereGeometry(0.72, 20, 16), boomMat);
-boom.position.y = 2.9;
+const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.68,0.68,1,32), boomMat);
 engine.add(boom);
+const spray=makeSpray();
+function makeSpray(){
+ const g=new THREE.Group();
+ for(let i=0;i<5;i++){
+  const bead=new THREE.Mesh(new THREE.SphereGeometry(0.025,8,6),new THREE.MeshBasicMaterial({color:"#d76e25",transparent:true,opacity:0}));
+  g.add(bead);
+ }
+ engine.add(g);return g;
+}
 
 /* air + smoke particles */
 function makeDots(color, n) {
@@ -206,8 +276,10 @@ const PARTS = [
   { mesh: block, name: "Engine Block", text: "The strong base. The whole engine sits on it.", out: 0, xray: true },
 ];
 PARTS.forEach((p) => { p.home = p.mesh.position.y; p.mesh.userData.part = p; });
-const pickMeshes = PARTS.map((p) => p.mesh).concat([crankAxle, crankWeb]);
-crankAxle.userData.part = PARTS[3]; crankWeb.userData.part = PARTS[3];
+PARTS.push({mesh:rod,name:"Connecting Rod",text:"This jointed arm joins the piston pin to the offset crank pin. Watch it tilt as the crank turns.",out:0,label:"connecting rod",anchor:new THREE.Vector3(0,-0.08,0),home:rod.position.y});
+rod.userData.part=PARTS[PARTS.length-1];
+const pickMeshes = PARTS.map((p) => p.mesh).concat([crankAxle, crankWeb,crankWeb2,journal,flywheel]);
+crankAxle.userData.part = PARTS[3]; crankWeb.userData.part = PARTS[3]; crankWeb2.userData.part=PARTS[3];journal.userData.part=PARTS[3];flywheel.userData.part=PARTS[3];
 
 /* ---------- x-ray labels (leader lines) ---------- */
 const labelLayer = document.getElementById("labels");
@@ -280,7 +352,8 @@ function projectLabels() {
     for (const it of col) {
       let ly = Math.max(prevY + 34, it.ay - 18);
       ly = Math.min(h - 110, ly);
-      const side = w < 500 ? (it.ax < w / 2 ? -1 : 1) : it.side;
+      if(it.p.mesh===rod && w<500 && mode===2) ly=Math.min(document.getElementById("stepui").getBoundingClientRect().top-18,it.ay+52);
+      const side = w < 500 ? (it.p.mesh===rod ? -1 : it.ax < w / 2 ? -1 : 1) : it.side;
       /* wide screens: park each label column just outside the whole model
          so a label never sits on a neighbouring part */
       /* phones: park labels in the outer margins (measured width) so they
@@ -296,7 +369,7 @@ function projectLabels() {
       const edgeY=ly-it.el.offsetHeight/2;
       it.path.setAttribute("d", `M ${it.ax.toFixed(1)} ${it.ay.toFixed(1)} L ${edgeX.toFixed(1)} ${edgeY.toFixed(1)}`);
       it.el.classList.add("on"); it.path.classList.add("on");
-      prevY = ly;
+      if(it.p.mesh!==rod || w>=500 || mode!==2) prevY = ly;
     }
   }
 }
@@ -307,6 +380,12 @@ function setXrayTargets(on) {
   for (const [mesh, edges] of ghosts) {
     spring(edges.material, "opacity", on ? 0.9 : 0, { stiffness: 40, damping: 10 });
     spring(mesh.material, "opacity", on ? 0.16 : (mesh === shell ? 0.45 : 1), { stiffness: 40, damping: 10 });
+    mesh.children.forEach(child=>{
+      if(child.isMesh && child!==hulls.get(mesh)) {
+        if(!child.material.transparent){child.material.transparent=true;child.material.needsUpdate=true;}
+        spring(child.material,"opacity",on?0.16:1,{stiffness:40,damping:10});
+      }
+    });
     /* turning transparency on after first compile needs a shader rebuild,
        or the opacity spring is silently ignored (block/head stayed solid) */
     if (!mesh.material.transparent) { mesh.material.transparent = true; mesh.material.needsUpdate = true; }
@@ -319,10 +398,10 @@ function setXrayTargets(on) {
 
 /* ---------- four-stroke cycle ---------- */
 const STROKES = [
-  { word: "Air in!", line: "The engine breathes in a big gulp of air." },
+  { word: "Air in!", line: "The air valve opens. The descending piston draws air in." },
   { word: "Squeeze!", line: "The piston squeezes the air tight. Squeezed air gets really HOT!" },
-  { word: "BOOM!", line: "Fuel sprays into the hot air and goes BOOM! That push is the power." },
-  { word: "Puff out!", line: "The smoke puffs out. Phew! And it all starts again." },
+  { word: "BOOM!", line: "Fuel sprays into hot air and burns. The expanding gas pushes the piston down." },
+  { word: "Puff out!", line: "The exhaust valve opens. The rising piston pushes used gas out." },
 ];
 const STROKE_T = 2.0;
 let cycleT = 0, lastStroke = -1, boomSeen = false, graceUntil = 0, graceMax = 0;
@@ -376,7 +455,7 @@ function setMode(m) {
      clears the top edge */
   const phoneXray = m === 1 && innerWidth / innerHeight < 0.75;
   if (phoneXray) camDist = 14;
-  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : phoneXray ? 14 : 11;
+  controls.maxDistance = wideXray ? 14 : wideGo ? 15.5 : phoneXray ? 14 : m===2 ? 14.5 : 13;
   modeBtns.forEach((b, i) => {
     b.classList.toggle("active", i === m);
     if (i === m) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
@@ -388,13 +467,15 @@ function setMode(m) {
   hint.classList.add("show");
   if (m === 1) {
     banner.classList.remove("pop"); oneliner.classList.remove("show");
-    for (const p of PARTS) spring(p.mesh.position, "y", p.home + p.out, { stiffness: 42, damping: 8.5 });
+    for (const p of PARTS.filter(p=>p.mesh!==rod)) spring(p.mesh.position, "y", p.home + p.out, { stiffness: 42, damping: 8.5 });
     setXrayTargets(true);
   } else {
-    for (const p of PARTS) spring(p.mesh.position, "y", p.home, { stiffness: 48, damping: 9 });
+    for (const p of PARTS.filter(p=>p.mesh!==rod)) spring(p.mesh.position, "y", p.home, { stiffness: 48, damping: 9 });
     setXrayTargets(m === 2); /* cycle runs x-ray too, so the piston is visible */
   }
   if (m === 2) {
+    for(let i=springs.length-1;i>=0;i--) if(springs[i].obj===piston.position||springs[i].obj===crank.position||springs[i].obj===valveIn.position||springs[i].obj===valveOut.position) springs.splice(i,1);
+    crank.position.y=1; piston.position.y=2.6; linkage(0);
     cycleT = 0; lastStroke = -1; boomSeen = false;
     curStroke = -1; stepRunning = false; runUntil = 0;
     updateStepUI();
@@ -460,6 +541,11 @@ document.getElementById("card-ok").addEventListener("click", () => {
   wakeChrome();
 });
 
+let suspended=false;
+addEventListener("blur",()=>{suspended=true;});
+addEventListener("focus",()=>{suspended=false;clock.getDelta();});
+document.addEventListener("visibilitychange",()=>{suspended=document.hidden;clock.getDelta();});
+
 let idleTimer;
 function wakeChrome() {
   chrome.forEach((c) => c.classList.remove("idle"));
@@ -483,6 +569,7 @@ canvas.addEventListener("pointerup", (e) => {
     cardText.textContent = p.text;
     card.classList.remove("secret");
     card.classList.add("show");
+    if(p.mesh===rod) return;
     spring(p.mesh.scale, "x", 1.18, { stiffness: 90, damping: 7 });
     spring(p.mesh.scale, "y", 1.18, { stiffness: 90, damping: 7 });
     spring(p.mesh.scale, "z", 1.18, { stiffness: 90, damping: 7 });
@@ -494,7 +581,7 @@ canvas.addEventListener("pointerup", (e) => {
 
 /* ---------- loop ---------- */
 const clock = new THREE.Clock();
-const P_TOP = 2.6, P_BOT = 1.9;
+
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
@@ -506,7 +593,7 @@ function tick() {
     /* the camera grace only matters when running on its own; a pressed
        step starts right away so an eager tap always sticks */
     const inGrace = !stepMode && (nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45));
-    if (!inGrace && (!stepMode || stepRunning)) cycleT += dt;
+    if (!suspended && !inGrace && (!stepMode || stepRunning)) cycleT += dt;
     if (stepMode && stepRunning && cycleT >= runUntil) {
       cycleT = runUntil;
       stepRunning = false;
@@ -534,41 +621,46 @@ function tick() {
       }
     }
 
-    let py;
-    if (stroke === 0) py = lerp(P_TOP, P_BOT, ease);
-    else if (stroke === 1) py = lerp(P_BOT, P_TOP, ease);
-    else if (stroke === 2) py = lerp(P_TOP, P_BOT, Math.min(1, f * 2.4));
-    else py = lerp(P_BOT, P_TOP, ease);
-    piston.position.y = py;
+    const angle=ph*Math.PI;
+    const lateral=CRANK_R*Math.sin(angle);
+    piston.position.y=crank.position.y+CRANK_R*Math.cos(angle)+Math.sqrt(ROD_L*ROD_L-lateral*lateral);
+    linkage(angle);
 
-    valveIn.position.y = 4.25 - (stroke === 0 ? Math.sin(f * Math.PI) * 0.3 : 0);
-    valveOut.position.y = 4.25 - (stroke === 3 ? Math.sin(f * Math.PI) * 0.3 : 0);
+    valveIn.position.y = 3.75 - (stroke === 0 ? Math.sin(f * Math.PI) * 0.3 : 0);
+    valveOut.position.y = 3.75 - (stroke === 3 ? Math.sin(f * Math.PI) * 0.3 : 0);
 
-    crank.rotation.z = -ph * Math.PI;
-    rod.position.set(0, (py + crank.position.y) / 2 + 0.2, 0);
-    rod.scale.y = Math.max(0.4, (py - crank.position.y) / 1.6 + 0.35);
 
-    if (stroke === 2 && f < 0.35) {
-      boomMat.opacity = (1 - f / 0.35) * 0.85;
-      boom.scale.setScalar(0.6 + f * 2.2);
-    } else boomMat.opacity = Math.max(0, boomMat.opacity - dt * 4);
+
+    const crown=piston.position.y+0.36, ceiling=3.28;
+    const chamberHeight=Math.max(0.025,ceiling-crown);
+    boom.position.y=crown+chamberHeight/2;
+    boom.scale.set(1,chamberHeight,1);
+    boomMat.color.set(stroke===1?"#e9943f":stroke===2?"#ef7837":"#a9ccd7");
+    boomMat.opacity=stroke===1?0.12+f*0.22:stroke===2?0.25:stroke===0?0.10:0.06;
+    spray.children.forEach((d,i)=>{
+      const u=(f*3+i*0.18)%1;
+      d.position.set(Math.sin(i*2.4)*u*0.38,3.26-u*chamberHeight*0.8,Math.cos(i*2.4)*u*0.38);
+      d.material.opacity=stroke===2&&f<0.28?0.9:0;
+    });
 
     airDots.children.forEach((d, i) => {
       const ff = (f + i * 0.16) % 1;
-      d.position.set(-0.55 + Math.sin(i * 2.1) * 0.15, 5.1 - ff * 2.4, Math.cos(i * 1.7) * 0.15);
+      d.position.set(-0.55 + Math.sin(i * 2.1) * 0.15, 3.9 - ff * 0.8, Math.cos(i * 1.7) * 0.15);
       d.material.opacity = stroke === 0 ? Math.sin(ff * Math.PI) * 0.9 : 0;
     });
     smokeDots.children.forEach((d, i) => {
       const ff = (f + i * 0.16) % 1;
-      d.position.set(0.55 + Math.sin(i * 1.9) * 0.2 + ff * 0.5, 4.1 + ff * 2.2, Math.cos(i * 2.3) * 0.2);
+      d.position.set(0.55 + Math.sin(i * 1.9) * 0.2 + ff * 0.5, 3.4 + ff * 1.3, Math.cos(i * 2.3) * 0.2);
       d.material.opacity = stroke === 3 ? Math.sin(ff * Math.PI) * 0.7 : 0;
       d.scale.setScalar(1 + ff * 1.6);
     });
   } else {
+    spray.children.forEach(d=>d.material.opacity=0);
     airDots.children.forEach((d) => (d.material.opacity = 0));
     smokeDots.children.forEach((d) => (d.material.opacity = 0));
     boomMat.opacity = Math.max(0, boomMat.opacity - dt * 4);
-    if (mode === 0 && !reducedMotion) piston.position.y = 2.2 + Math.sin(t * 1.4) * 0.12;
+    if (mode === 0) { piston.position.y=2.6; linkage(0); }
+    if (mode === 1) linkage(0,true);
   }
 
   const len = camera.position.length();
