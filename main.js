@@ -380,7 +380,7 @@ function setMode(m) {
     cycleT = 0; lastStroke = -1; boomSeen = false;
     /* let the camera finish easing before the first headline appears, so the
        lifted valves never pass through the narration */
-    graceT = prevMode === 1 ? 1.4 : 1.0;
+    graceT = prevMode === 1 ? 2.1 : 1.2;
   } else {
     setTimeout(() => { if (mode !== 2) { banner.classList.remove("pop"); oneliner.classList.remove("show"); } }, 400);
   }
