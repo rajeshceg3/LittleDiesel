@@ -114,7 +114,7 @@ The generated .agents/skills/verify-little-diesel workflow and3feature map were 
 
 For a behavior change, update the matching table/invariant first, reproduce any claimed failure through a user path, add a failing-before check, fix, rerun regression plus affected spatial/reading checks, then record exact hosted revision and evidence. Keep unverified claims and invalid model-only inputs out of confirmed issues.
 
-## Focused controls (current source, hosted gate pending)
+## Focused controls (production5498459, verified)
 
 The persistent three-mode row is shown only outside the lesson. Within it: introduction has Start learning, Explore engine and More (3buttons, previously8); prediction keeps3answers+skip+Back+More (6, previously10); feedback/held have Watch it or Next idea plus Back+More (3, previously8). The named-part select is an additional model control, not counted as a button. Continuous playback keeps Step it visible with Back+More. No learning step auto-advances.
 
@@ -141,3 +141,5 @@ Legacy hidden Previous/Restart/Model limits elements are compatibility handlers,
 ## Committed diagrams and supporting artifacts
 
 [docs/statecharts/README.md](docs/statecharts/README.md) indexes editable TLA+/config/view models, generated Mermaid/SVG, chat-ready PNGs, bounded model-result summaries and safe actual hosted screenshots. Includes separate post-fix note-ownership and idempotent-reveal charts so the implicit machines are not hidden by the original overview. Keep these synchronized with this living file and regression tests. No internal operational material belongs in the public repo.
+
+Focused-controls final hosted evidence: PR19 https://github.com/rajeshceg3/LittleDiesel/pull/19 merged54984596e9cef09c3e465dcdbcd203f025bc6291. Live https://littlediesel.vercel.app/?layout=focused-1 . Served index/main/styles exactly match source11f14a9: JS c083e682eea617e8cac7d3e6bc9b8c27c2063d5e9653b4d379bfc5f8f2b1efb3; CSS dd69d2efd4c0cd1ac82217fb4ba37c3ae46e4c43a63f466484928ff3567fc15d. Full focused-control tests passed hosted320/390/1320/844, five state-regression paths passed hosted390, reducer23296states passed. Actual hosted phone intro/prediction/held and landscape menu pixels inspected. No physical-device claim. A discovered menu Tab escape in the local prototype was fixed with explicit first/last wrapping, then all fourwidth focus/Escape/return checks passed.
