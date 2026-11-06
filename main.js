@@ -478,14 +478,14 @@ function renderLesson(){
  if(phase==='transferFeedback'){
   add('h2',lesson.transfer===transfer.answer?'The same idea fits this new case.':'Return to trapped air.');add('p',transfer.why[lesson.transfer]);button('Explain it in your own words',()=>lessonAction({type:'teachback'}));return;
  }
- add('h2','From fuel to a turning crank');add('p','Try explaining: why must the valves close for the squeeze? When does fuel arrive? What connects the piston to the crank?');button('Compare with the explanation',()=>{const e=add('p','Compression heats trapped air; injected fuel burns in it; expanding gas pushes the piston; the rod turns the offset crank. Only the power stroke adds combustion energy. The crank and flywheel carry motion through the other strokes.');e.scrollIntoView({block:'nearest'});},true);button('Try the lesson again',resetLesson);button('Explore the full cycle',()=>{stepMode=false;updateStepUI();renderLesson();},true);
+ add('h2','From fuel to a turning crank');add('p','Try explaining: why must the valves close for the squeeze? When does fuel arrive? What connects the piston to the crank?');button('Compare with the explanation',()=>{let e=reasoning.querySelector('[data-explanation]');if(e){e.scrollIntoView({block:'nearest'});return;}e=add('p','Compression heats trapped air; injected fuel burns in it; expanding gas pushes the piston; the rod turns the offset crank. Only the power stroke adds combustion energy. The crank and flywheel carry motion through the other strokes.');e.dataset.explanation='shown';e.scrollIntoView({block:'nearest'});},true);button('Try the lesson again',resetLesson);button('Explore the full cycle',()=>{stepMode=false;updateStepUI();renderLesson();},true);
 }
-function resetLesson(){stepMode=true;lesson=createLesson();curStroke=-1;cycleT=0;lastStroke=-1;stepRunning=false;runUntil=0;boomSeen=false;clearTimeout(secretTimer);card.classList.remove('show');limitsOpen=false;crank.position.y=1;piston.position.y=2.6;linkage(0);renderLesson();updateStepUI();}
+function resetLesson(){stepMode=true;lesson=createLesson();curStroke=-1;cycleT=0;lastStroke=-1;stepRunning=false;runUntil=0;boomSeen=false;cancelAutoplayNote();card.classList.remove('show');limitsOpen=false;crank.position.y=1;piston.position.y=2.6;linkage(0);renderLesson();updateStepUI();}
 document.getElementById('restart').onclick=resetLesson;
 document.getElementById('model-note').onclick=()=>{limitsOpen=true;renderLesson();};
 document.getElementById('previous').onclick=()=>{
  if(stepRunning)return;
- lesson=reduceLesson(lesson,{type:'previous'});curStroke=lesson.phase==='orient'?-1:lesson.stroke;cycleT=curStroke<0?0:(curStroke+1)*STROKE_T;lastStroke=curStroke;clearTimeout(secretTimer);card.classList.remove('show');
+ lesson=reduceLesson(lesson,{type:'previous'});curStroke=lesson.phase==='orient'?-1:lesson.stroke;cycleT=curStroke<0?0:(curStroke+1)*STROKE_T;lastStroke=curStroke;cancelAutoplayNote();card.classList.remove('show');
  if(curStroke>=0){banner.textContent=STROKES[curStroke].word;oneliner.textContent=STROKES[curStroke].line;}
  renderLesson();updateStepUI();
 };
@@ -498,11 +498,13 @@ const HINTS = [
 ];
 const MAGIC = "Diesel secret: NO spark plug! The squeeze alone makes the air so hot, the fuel lights by itself.";
 
-let secretTimer = 0;
+let secretTimer = 0, playbackEpoch = 0;
+function cancelAutoplayNote() { clearTimeout(secretTimer); secretTimer=0; playbackEpoch++; }
+function leaveAutoplay() { cancelAutoplayNote(); card.classList.remove("secret", "show"); }
 function setMode(m) {
   const prevMode = mode;
   /* a pending secret-card timer from an earlier visit must not fire late */
-  clearTimeout(secretTimer);
+  cancelAutoplayNote();
   mode = m;
   /* mode 2 pulls back so the whole engine fits between the narration
      band and the hint band - genuinely separate space, both widths */
@@ -588,6 +590,7 @@ nextBtn.addEventListener("click", () => {
 
 autoBtn.addEventListener("click", () => {
   if (mode !== 2) return;
+  leaveAutoplay();
   stepMode = !stepMode;
   limitsOpen=false;
   if (stepMode) {
@@ -688,8 +691,9 @@ function tick() {
       oneliner.classList.add("show");
       if (!stepMode && stroke === 2 && !boomSeen) {
         boomSeen = true;
+        const epoch=playbackEpoch;
         secretTimer = setTimeout(() => {
-          if (mode === 2) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("secret", "show"); }
+          if (mode === 2 && !stepMode && epoch === playbackEpoch) { cardName.textContent = "The diesel secret"; cardText.textContent = MAGIC; card.classList.add("secret", "show"); }
         }, 2600);
       }
     }
