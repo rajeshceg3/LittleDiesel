@@ -6,12 +6,12 @@ Verify teach-back reveal through actual browser events.
 - Four-stroke completion, transfer skip, repeat reveal.
 
 ## How to get to it (user POV)
-Make it go! → Think through the first move.
+Make it go! → Start learning.
 
 ## Driving it with Playwright
 Preconditions: fresh context and initialized app.
 - Run the state-browser helper described in the parent skill.
-- For each of4strokes: Show me this move first → Watch it → held Next idea / Try a new case. Choose Think aloud, then Compare4times. Require one explanation.
+- For each of4strokes: Show me this move first → Watch it → held Next idea / Try a new case. Choose Think aloud, then Compare, then confirm one explanation and Explore engine. Require one explanation.
 - Require no page errors; retain the named screenshot/JSON.
 
 ## Gotchas

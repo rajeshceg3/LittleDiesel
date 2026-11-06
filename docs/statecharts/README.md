@@ -1,6 +1,6 @@
 # Little Diesel state charts
 
-These project-authored charts live with the code. Read [the single living audit](../../STATE_MACHINES.md) for transition tables, confirmed issues and proof boundaries. Last checked against runtime main96a070c (documentation/tests current75e8813),6November2026.
+These project-authored charts live with the code. Read [the single living audit](../../STATE_MACHINES.md) for transition tables, confirmed issues and proof boundaries. Updated for focused controls,6November2026. See the living audit for the final hosted revision.
 
 | Diagram | Editable Mermaid | Rendered SVG | Model |
 |---|---|---|---|
@@ -9,7 +9,7 @@ These project-authored charts live with the code. Read [the single living audit]
 | Autoplay-note ownership after fix | [ownership](generated/ownership.mmd) | [ownership](generated/ownership.svg) | [Ownership](models/Ownership.tla) |
 | Idempotent explanation reveal | [reveal](generated/reveal.mmd) | [reveal](generated/reveal.svg) | [Reveal](models/Reveal.tla) |
 
-The first two PNGs are the chat-ready annotated charts. The SVGs are fresh renders of the committed Mermaid. Ownership and Reveal cover the implicit machines omitted from the first diagrams. Ownership projects cancellation/generation checks into one owner-valid transition; it is not a line-for-line implementation model. Reveal self-loops are not drawn: pressing Compare again stays at one explanation. No invariant breaks were found in these bounded models; that does not prove all app behavior.
+The first two PNGs are current rendered charts. The SVGs are fresh renders of the committed Mermaid. Ownership and Reveal cover the implicit machines omitted from the first diagrams. Ownership projects cancellation/generation checks into one owner-valid transition; it is not a line-for-line implementation model. Reveal self-loops are not drawn: pressing Compare again stays at one explanation. No invariant breaks were found in these bounded models; that does not prove all app behavior.
 
 ## Regenerate
 Use public pstack source e388616361ac78eeb2da66c148d882534aca4cb9, its statechart script, TLC1.7.4 and Pele1.9.0. Outside the repo, provide the pstack checkout and TLC jar. Example from repo root:
@@ -24,3 +24,5 @@ Repeat for Journey/journey-view, Explore/explore-view and Reveal/reveal-view. Co
 The evidence folder contains actual hosted390 screenshots: held power stroke without the stale note, single teach-back explanation after4activations, and reset introduction after rapid controls. Their assertions are in tests/state-browser.cjs. The living audit records failing-before and passing-after observations and exact runtime source hashes. Screenshots contain only the app, no user data. No internal transcripts, prompts, credentials, private paths or raw operational logs are retained here.
 
 For future changes update the living audit, models, Mermaid, renders and regression tests together; rerun model checks and affected real browser paths. A copied file is not execution evidence. The model reports record what actually ran.
+
+Focused controls update: overview includes More, Close/Escape, About this model and explicit exploration exits. This overview models the menu from introduction only; More is available in all lesson phases and returns to the actual underlying phase, as detailed in the living audit. Journey starts with Start learning. Full answer-history/timer/reveal state is split into the separate focused models, not silently claimed by the overview.

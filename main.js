@@ -444,7 +444,19 @@ let mode = 0;
 let lesson=createLesson(),limitsOpen=false;
 const reasoning=document.getElementById("reasoning"),lessonTools=document.getElementById("lesson-tools");
 function lessonAction(action){lesson=reduceLesson(lesson,action);renderLesson();updateStepUI();}
+function syncJourneyNav(){
+ const learning=mode===2;
+ document.body.classList.toggle('learning-mode',learning);
+ document.body.classList.toggle('autoplay',learning&&!stepMode);
+ document.getElementById('journey-nav').hidden=!learning;
+ document.getElementById('journey-back').hidden=learning&&stepMode&&lesson.phase==='orient';
+ document.getElementById('journey-back').disabled=false;
+ document.getElementById('more-restart').hidden=stepMode&&lesson.phase==='orient';
+ document.getElementById('more-run').hidden=!stepMode;
+ document.getElementById('more-restart').disabled=stepRunning;
+}
 function renderLesson(){
+ syncJourneyNav();
  const active=mode===2&&stepMode;
  lessonTools.hidden=!active;
  const phase=lesson.phase;
@@ -464,7 +476,7 @@ function renderLesson(){
  const button=(text,fn,minor=false)=>{const b=add('button',text);b.type='button';if(minor)b.className='minor';b.onclick=fn;return b;};
  if(limitsOpen){add('h2','A model, not a whole engine');add('p','One cylinder and four strokes. Colours show changing conditions, not measured temperature. Parts are not to scale. Real valve timing, camshaft, lubrication and starter are left out.');add('p','The crank and rod show the motion connection. This is not a calculation of pressure, efficiency or whether a real engine would start.');button('Back to the lesson',()=>{limitsOpen=false;renderLesson();});return;}
  if(phase==='orient'){
-  add('h2','How can fuel turn a wheel without a spark plug?');add('p','Follow one cylinder: air goes in, gets squeezed hot, fuel burns, and used gas goes out. The piston pushes a jointed rod that turns the crank.');button('Think through the first move',()=>lessonAction({type:'start'}));button('Explore the moving engine instead',()=>{stepMode=false;updateStepUI();renderLesson();},true);return;
+  add('h2','How can fuel turn a wheel without a spark plug?');add('p','Follow one cylinder: air goes in, gets squeezed hot, fuel burns, and used gas goes out. The piston pushes a jointed rod that turns the crank.');button('Start learning',()=>lessonAction({type:'start'}));button('Explore engine',()=>setMode(1),true);return;
  }
  if(phase==='predict'){
   const q=questions[lesson.stroke];add('h2',q.title);
@@ -478,7 +490,7 @@ function renderLesson(){
  if(phase==='transferFeedback'){
   add('h2',lesson.transfer===transfer.answer?'The same idea fits this new case.':'Return to trapped air.');add('p',transfer.why[lesson.transfer]);button('Explain it in your own words',()=>lessonAction({type:'teachback'}));return;
  }
- add('h2','From fuel to a turning crank');add('p','Try explaining: why must the valves close for the squeeze? When does fuel arrive? What connects the piston to the crank?');button('Compare with the explanation',()=>{let e=reasoning.querySelector('[data-explanation]');if(e){e.scrollIntoView({block:'nearest'});return;}e=add('p','Compression heats trapped air; injected fuel burns in it; expanding gas pushes the piston; the rod turns the offset crank. Only the power stroke adds combustion energy. The crank and flywheel carry motion through the other strokes.');e.dataset.explanation='shown';e.scrollIntoView({block:'nearest'});},true);button('Try the lesson again',resetLesson);button('Explore the full cycle',()=>{stepMode=false;updateStepUI();renderLesson();},true);
+ add('h2','From fuel to a turning crank');add('p','Try explaining: why must the valves close for the squeeze? When does fuel arrive? What connects the piston to the crank?');const compare=button('Compare with the explanation',()=>{if(compare.dataset.done){setMode(1);return;}let e=reasoning.querySelector('[data-explanation]');if(e){e.scrollIntoView({block:'nearest'});return;}e=add('p','Compression heats trapped air; injected fuel burns in it; expanding gas pushes the piston; the rod turns the offset crank. Only the power stroke adds combustion energy. The crank and flywheel carry motion through the other strokes.');e.dataset.explanation='shown';compare.dataset.done='true';compare.textContent='Explore engine';e.scrollIntoView({block:'nearest'});});
 }
 function resetLesson(){stepMode=true;lesson=createLesson();curStroke=-1;cycleT=0;lastStroke=-1;stepRunning=false;runUntil=0;boomSeen=false;cancelAutoplayNote();card.classList.remove('show');limitsOpen=false;crank.position.y=1;piston.position.y=2.6;linkage(0);renderLesson();updateStepUI();}
 document.getElementById('restart').onclick=resetLesson;
@@ -559,6 +571,7 @@ modeBtns.forEach((b, i) => b.addEventListener("click", () => setMode(i)));
 /* step mode hides the hint: the pulsing button is the invitation.
    run mode brings back the original "watch it go" hint. */
 function updateStepUI() {
+  syncJourneyNav();
   if (mode !== 2) { stepui.classList.remove("show"); return; }
   stepui.classList.add("show");
   if (stepMode) {
@@ -607,6 +620,16 @@ autoBtn.addEventListener("click", () => {
   wakeChrome();
 });
 
+const moreDialog=document.getElementById('more-dialog');
+moreDialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const bs=[...moreDialog.querySelectorAll('button')].filter(b=>!b.hidden&&!b.disabled);const first=bs[0],last=bs.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
+function closeMore(){if(moreDialog.open)moreDialog.close();}
+document.getElementById('journey-more').onclick=()=>moreDialog.showModal();
+document.getElementById('more-close').onclick=closeMore;
+document.getElementById('more-run').onclick=()=>{closeMore();if(stepMode)autoBtn.click();};
+document.getElementById('more-restart').onclick=()=>{closeMore();if(!stepRunning)resetLesson();};
+document.getElementById('more-limits').onclick=()=>{closeMore();limitsOpen=true;if(!stepMode){autoBtn.click();limitsOpen=true;}renderLesson();};
+document.getElementById('more-explore').onclick=()=>{closeMore();setMode(1);};
+document.getElementById('journey-back').onclick=()=>{if(stepRunning){setMode(1);return;}if(!stepMode||lesson.phase==='orient')setMode(1);else document.getElementById('previous').click();};
 document.getElementById("card-ok").addEventListener("click", () => {
   card.classList.remove("show");
   wakeChrome();
@@ -665,7 +688,7 @@ function tick() {
     /* the camera grace only matters when running on its own; a pressed
        step starts right away so an eager tap always sticks */
     const inGrace = !stepMode && (nowMs < graceUntil || (nowMs < graceMax && Math.abs(camera.position.length() - camDist) > 0.45));
-    if (!suspended && !limitsOpen && !inGrace && (!stepMode || stepRunning)) cycleT += dt;
+    if (!suspended && !limitsOpen && !document.getElementById("more-dialog").open && !inGrace && (!stepMode || stepRunning)) cycleT += dt;
     if (stepMode && stepRunning && cycleT >= runUntil) {
       cycleT = runUntil;
       stepRunning = false;lesson=reduceLesson(lesson,{type:"finish"});renderLesson();

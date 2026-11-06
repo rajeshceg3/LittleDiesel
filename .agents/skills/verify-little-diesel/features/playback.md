@@ -6,7 +6,7 @@ Verify playback ownership through actual browser events.
 - Continuous playback, pending note, step return.
 
 ## How to get to it (user POV)
-Make it go! → Explore the moving engine instead.
+Make it go! → More → Let it run.
 
 ## Driving it with Playwright
 Preconditions: fresh context and initialized app.

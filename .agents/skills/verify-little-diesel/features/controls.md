@@ -11,8 +11,8 @@ Make it go! after repeated Peek inside / Make it go! selections.
 ## Driving it with Playwright
 Preconditions: fresh context and initialized app.
 - Run the state-browser helper described in the parent skill.
-- Start → skip → press #next Enter twice → Model limits → Back to lesson → require held Next idea → Start over → introduction.
+- Start → skip → press #next Enter twice → More → About this model → Back to lesson → require held Next idea → More → Restart lesson → introduction.
 - Require no page errors; retain the named screenshot/JSON.
 
 ## Gotchas
-- Model limits pauses an underway move; close it before waiting for the boundary.
+- More → About this model pauses an underway move; close it before waiting for the boundary.
