@@ -1,13 +1,13 @@
 # Little Diesel: living state-machine audit
 
-Status: fixes for two confirmed bugs pass locally; production verification pending. Updated 6 November 2026. Baseline main424e78e. This is the single maintained audit file: keep findings, tables and evidence current when behavior changes. It describes reachable app behavior, not every theoretical reducer input as a user bug.
+Status: two confirmed bugs fixed and verified on production main96a070caeeddc91a2c9d5b47f342f88b53349bc3 via PR16. Updated 6 November 2026. Baseline main424e78e. This is the single maintained audit file: keep findings, tables and evidence current when behavior changes. It describes reachable app behavior, not every theoretical reducer input as a user bug.
 
 ## Findings, ranked by impact
 
 | Group | Confirmed reachable failure | Impact | Evidence before | Fix and regression | Status |
 |---|---|---|---|---|---|
-| [#14](https://github.com/rajeshceg3/LittleDiesel/issues/14) | Old continuous-play timer opens a secret card after Step it has returned to learner-paced playback | P1: unsolicited reading surface interrupts a held learning state | Hosted390: Explore moving engine → BOOM! → Step it → wait3.2s: Next idea plus secret show. New browser test fails1 versus0 | Cancel note and increment playback epoch when ownership changes; callback also requires continuous playback and matching epoch. Browser stale-secret test | Fixed locally; hosted retest pending |
-| [#15](https://github.com/rajeshceg3/LittleDiesel/issues/15) | Repeated Compare with the explanation appends duplicate paragraphs | P2: repeated content and growing scroll obscure the takeaway | Hosted390: finish4strokes → Think aloud → Compare4times: actual paragraph count4. New browser test fails4 versus1 | One marked explanation per rendered teach-back surface; retries scroll to existing paragraph. Browser repeat-reveal test | Fixed locally; hosted retest pending |
+| [#14](https://github.com/rajeshceg3/LittleDiesel/issues/14) | Old continuous-play timer opens a secret card after Step it has returned to learner-paced playback | P1: unsolicited reading surface interrupts a held learning state | Hosted390: Explore moving engine → BOOM! → Step it → wait3.2s: Next idea plus secret show. New browser test fails1 versus0 | Cancel note and increment playback epoch when ownership changes; callback also requires continuous playback and matching epoch. Browser stale-secret test | Fixed and hosted390/844 regression passed |
+| [#15](https://github.com/rajeshceg3/LittleDiesel/issues/15) | Repeated Compare with the explanation appends duplicate paragraphs | P2: repeated content and growing scroll obscure the takeaway | Hosted390: finish4strokes → Think aloud → Compare4times: actual paragraph count4. New browser test fails4 versus1 | One marked explanation per rendered teach-back surface; retries scroll to existing paragraph. Browser repeat-reveal test | Fixed and hosted390/844 regression passed |
 
 Priorities are relative within this app, not claims of data loss or security severity. No money, account, storage, backend, network-write or multi-user state exists in this app. No invalid reducer state found in exhaustive exploration below. No other suspected behavior is promoted to a confirmed bug.
 
@@ -92,6 +92,14 @@ Baseline served main.js SHA256 eb048392ccfc02c52c740867e010f581265fbaeb3d30d7dd1
 Rapid-controls covers4repeated mode pairs, duplicate Enter during motion, model-limits open/return, boundary hold and restart. These are interleavings of single-threaded handlers, requestAnimationFrame and timers, not parallel database transactions. No app network requests mutate state, so transport retries are not a separate machine. Repeated activations and stale callbacks are the applicable retry/concurrency cases.
 
 Earlier pstack/TLC diagrams checked two abstractions (35states/94steps and8states/32steps). They omitted pending timer ownership and reveal duplication, so they did not detect these bugs. Do not cite those charts as proof of the full app. Current audit explicitly includes these implicit machines.
+
+## Final hosted verification
+
+PR: https://github.com/rajeshceg3/LittleDiesel/pull/16 . Production: https://littlediesel.vercel.app/?layout=state-1 . Served index/main/learning bytes exactly matched source a3e8e64; main SHA256530f805f6c783c913ebf0c99bfa7636ffc1a7d9eebcd9e0e4a35ea2a9cce51b8, index20ba721c0b5cfd20c547ab4add8d80d9e7c106c143cd0e76fd4fc4365d9d24d3. Source-linked query was changed to state-1 for runtime cache invalidation; CSS unchanged.
+
+Hosted390portrait and844landscape: stale-secret, repeat-reveal, rapid-controls all passed. Hosted390 also passed normal-autoplay (secret still appears/dismisses, then step return holds) and pause-limits (wait2.6s while overlay open, then resume to boundary). Actual hosted portrait held/teachback and landscape teachback pixels inspected; no duplicate explanation or stale card. Browser emulation, not physical-device proof. Existing spatial regression passed320/390/1320/844 locally. An initial60s run stopped after three widths; only subsequent complete fourwidth pass counted. No CSS/model geometry changed.
+
+The generated .agents/skills/verify-little-diesel workflow and3feature map were executed end to end after generation; all3initial paths passed, browser/server cleaned up, screenshots/JSON survived. Additional normal-autoplay/pause-limits checks extend the helper without changing runtime source.
 
 ## Unconfirmed risks and exclusions
 
