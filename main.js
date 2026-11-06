@@ -302,77 +302,92 @@ labeledParts.forEach((p) => {
   leaderPaths.set(p, path);
 });
 const tmpV = new THREE.Vector3();
-/* top band reserved for the narration banner while it runs (mode 2).
-   Measured from the live DOM, so it holds at any width, font or safe-area.
-   94 matches the long-standing stacking floor when no banner is up. */
-let reserveCacheW = -1, reserveCacheY = 94;
-function topReserveY() {
-  if (mode !== 2) return 94;
-  if (true) {
-    reserveCacheW = innerWidth;
-    reserveCacheY = oneliner.getBoundingClientRect().bottom + 30;
-  }
-  return reserveCacheY;
+const annotationNav=document.createElement("nav");annotationNav.id="annotation-nav";annotationNav.setAttribute("aria-label","Model parts");document.body.append(annotationNav);
+const annotationSelect=document.createElement("select");annotationSelect.setAttribute("aria-label","Named engine part");annotationNav.append(annotationSelect);
+let selectedAnnotation=0;
+const annotationButtons=labeledParts.map((p,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=p.label;annotationSelect.append(o);return o;});
+annotationSelect.addEventListener("change",()=>{selectedAnnotation=Number(annotationSelect.value);wakeChrome();});
+const spatialMeshes=[...new Set([...PARTS.map(p=>p.mesh),shell,...rodEnds])];
+const interiorMeshes=[];
+for(const m of spatialMeshes.filter(m=>!PARTS.find(p=>p.mesh===m)?.xray&&m!==shell))m.traverse(child=>{if(child.isMesh&&child.material.side!==THREE.BackSide&&!interiorMeshes.includes(child))interiorMeshes.push(child);});
+function belongsTo(object,parent){for(let m=object;m;m=m.parent)if(m===parent)return true;return false;}
+let fittedDistance=0, zoomScale=1, lastFittedMode=-1;
+let modelStage = {x:0,y:0,w:innerWidth,h:innerHeight};
+function spatialStage() {
+  const annotated = mode === 1 || mode === 2;
+  if (!annotated) return {x:0,y:0,w:innerWidth,h:innerHeight};
+  if(innerHeight<500)return {x:14,y:20,w:innerWidth-310,h:innerHeight-40};
+  const top = mode === 2 ? Math.max(150, oneliner.getBoundingClientRect().bottom + 24) : 42;
+  const bottom = Math.min(card.classList.contains("show") ? card.getBoundingClientRect().top-20 : innerHeight, hint.getBoundingClientRect().top - 92,
+    (mode === 2 ? stepui : document.getElementById("modes")).getBoundingClientRect().top - 100);
+  return {x:14,y:top,w:innerWidth-28,h:Math.max(100,bottom-top)};
 }
 function projectLabels() {
-  const show = mode === 1 || mode === 2;
-  const w = innerWidth, h = innerHeight;
-  leaderSvg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-  /* first pass: project anchors */
-  const items = [];
-  labeledParts.forEach((p, i) => {
-    const el = labelEls.get(p);
-    const path = leaderPaths.get(p);
-    if (!show) { el.classList.remove("on"); path.classList.remove("on"); return; }
-    tmpV.copy(p.anchor);
-    p.mesh.localToWorld(tmpV);
-    tmpV.project(camera);
-    if (tmpV.z > 1) { el.classList.remove("on"); path.classList.remove("on"); return; }
-    items.push({
-      p, el, path,
-      ax: (tmpV.x * 0.5 + 0.5) * w,
-      ay: (-tmpV.y * 0.5 + 0.5) * h,
-      side: i % 2 === 0 ? -1 : 1,
-    });
-  });
-  /* wide screens: leftmost parts get left-hand labels, rightmost get right,
-     so leader lines do not run across neighbouring parts */
-  if (w >= 500) {
-    const byX = items.slice().sort((a, b) => a.ax - b.ax);
-    byX.forEach((it, k) => { it.side = k < byX.length / 2 ? -1 : 1; });
+  const show = (mode === 1 || mode === 2) && !card.classList.contains("show") && !document.body.classList.contains("reasoning");
+  annotationNav.hidden = !show;
+  for (const [i,p] of labeledParts.entries()) {labelEls.get(p).classList.remove("on");if(!show||i!==selectedAnnotation)leaderPaths.get(p).classList.remove("on");}
+  if (!show) {for(const part of labeledParts)if(part.mesh.material?.emissive)part.mesh.material.emissive.set(0);return;}
+  const available = labeledParts.map((p,i)=>i);
+  if (!available.includes(selectedAnnotation)) selectedAnnotation = available[0];
+  annotationButtons.forEach((b,i)=>{b.hidden=!available.includes(i);b.disabled=!available.includes(i);});
+  annotationSelect.value=String(selectedAnnotation);
+  annotationNav.style.top = innerHeight<500 ? `${innerHeight-190}px` : `${modelStage.y+modelStage.h+26}px`;
+  annotationNav.style.left = innerHeight<500 ? `${innerWidth-285}px` : '14px';
+  const p=labeledParts[selectedAnnotation], b=annotationSelect;
+  for(const part of labeledParts){if(part.mesh.material?.emissive){part.mesh.material.emissive.set(part===p ? '#8a5c22':'#000000');part.mesh.material.emissiveIntensity=part===p ? .24 : 0;}}
+  const anchorBox=new THREE.Box3().setFromObject(p.mesh);
+  tmpV.copy(p.anchor);p.mesh.localToWorld(tmpV);tmpV.clamp(anchorBox.min,anchorBox.max);tmpV.project(camera);
+  const ax=modelStage.x+(tmpV.x*.5+.5)*modelStage.w;
+  const ay=modelStage.y+(-tmpV.y*.5+.5)*modelStage.h;
+  if(tmpV.z>1||tmpV.z< -1||ax<modelStage.x||ax>modelStage.x+modelStage.w||ay<modelStage.y||ay>modelStage.y+modelStage.h)return;
+  const r=b.getBoundingClientRect(),lx=r.left+r.width/2,ly=r.top-5;
+  const path=leaderPaths.get(p);
+  leaderSvg.setAttribute("viewBox",`0 0 ${innerWidth} ${innerHeight}`);
+  
+  path.setAttribute("d",`M ${ax} ${ay} L ${lx} ${ly}`);
+  const hitRay=new THREE.Raycaster();
+  hitRay.setFromCamera(new THREE.Vector2(tmpV.x,tmpV.y),camera);
+  const hits=hitRay.intersectObjects(interiorMeshes,false);
+  let clear=!hits.length || belongsTo(hits[0].object,p.mesh) || p.xray;
+  // A short connector must not cross a different part after leaving its anchor.
+  for(let t=.08;clear&&t<.94;t+=.08){
+   const sx=ax+(lx-ax)*t,sy=ay+(ly-ay)*t;
+   if(sx<modelStage.x||sx>modelStage.x+modelStage.w||sy<modelStage.y||sy>modelStage.y+modelStage.h)continue;
+   hitRay.setFromCamera(new THREE.Vector2((sx-modelStage.x)/modelStage.w*2-1,1-(sy-modelStage.y)/modelStage.h*2),camera);
+   const crossing=hitRay.intersectObjects(interiorMeshes,false)[0];
+   if(crossing&&!belongsTo(crossing.object,p.mesh)&&!p.xray)clear=false;
   }
-  /* second pass: stack per side with a minimum gap so labels never collide */
-  const columns = w < 500 ? [[0, items.slice().sort((a, b) => a.ay - b.ay)]] : [[-1, []], [1, []]];
-  if (w >= 500) {
-    columns[0][1] = items.filter((it) => it.side === -1).sort((a, b) => a.ay - b.ay);
-    columns[1][1] = items.filter((it) => it.side === 1).sort((a, b) => a.ay - b.ay);
+  path.classList.toggle("on",clear);
+}
+function fitSpatialStage() {
+  modelStage=spatialStage();
+  camera.aspect=modelStage.w/modelStage.h;
+  camera.updateProjectionMatrix();
+  if(mode!==1&&mode!==2){lastFittedMode=-1;return;}
+  // Fit all meaningful parts (including exploded poses) at every camera angle.
+  scene.updateMatrixWorld(true);
+  const box=new THREE.Box3();
+  for(const m of spatialMeshes) {
+    if(m.visible && m.scale.length()>0.05)box.expandByObject(m);
   }
-  const minAx = Math.min(...items.map((it) => it.ax)), maxAx = Math.max(...items.map((it) => it.ax));
-  for (const [side0, col] of columns) {
-    let prevY = topReserveY() - 34;
-    for (const it of col) {
-      let ly = Math.max(prevY + 34, it.ay - 18);
-      ly = Math.min(h - 110, ly);
-      if(it.p.mesh===rod && w<500 && mode===2) ly=Math.min(document.getElementById("stepui").getBoundingClientRect().top-18,it.ay+52);
-      const side = w < 500 ? (it.p.mesh===rod ? -1 : it.ax < w / 2 ? -1 : 1) : it.side;
-      /* wide screens: park each label column just outside the whole model
-         so a label never sits on a neighbouring part */
-      /* phones: park labels in the outer margins (measured width) so they
-         neither touch the model nor run past the screen edge */
-      const half = it.el.offsetWidth / 2 + 8;
-      const lx0 = w >= 500
-        ? Math.max(70, Math.min(w - 70, side < 0 ? minAx - 125 : maxAx + 125))
-        : (side < 0 ? half : w - half);
-      const lx = Math.max(half, Math.min(w - half, lx0));
-      it.el.style.transform = `translate(${Math.round(lx)}px, ${Math.round(ly)}px) translate(-50%, -100%)`;
-      // End outside the nearest label edge, never under its letters.
-      const edgeX=lx+(it.ax<lx?-1:1)*(it.el.offsetWidth/2+6);
-      const edgeY=ly-it.el.offsetHeight/2;
-      it.path.setAttribute("d", `M ${it.ax.toFixed(1)} ${it.ay.toFixed(1)} L ${edgeX.toFixed(1)} ${edgeY.toFixed(1)}`);
-      it.el.classList.add("on"); it.path.classList.add("on");
-      if(it.p.mesh!==rod || w>=500 || mode!==2) prevY = ly;
-    }
+  const sphere=box.getBoundingSphere(new THREE.Sphere());
+  let distance=0;
+  const inverse=camera.quaternion.clone().invert();
+  const tanY=Math.tan(THREE.MathUtils.degToRad(camera.fov/2)),tanX=tanY*camera.aspect;
+  for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z]){
+    const v=new THREE.Vector3(x,y,z).sub(sphere.center).applyQuaternion(inverse);
+    distance=Math.max(distance,v.z+Math.max(Math.abs(v.x)/tanX,Math.abs(v.y)/tanY));
   }
+  distance*=1.08;
+  const dir=camera.position.clone().sub(controls.target).normalize();
+  if(lastFittedMode===mode&&fittedDistance>0)zoomScale=Math.max(1,Math.min(1.7,camera.position.distanceTo(controls.target)/fittedDistance));
+  else zoomScale=1;
+  fittedDistance=distance;lastFittedMode=mode;
+  controls.target.copy(sphere.center);
+  camera.position.copy(sphere.center).addScaledVector(dir,distance*zoomScale);
+  controls.minDistance=distance;controls.maxDistance=distance*1.7;
+  camera.lookAt(sphere.center);
+  camera.updateMatrixWorld(true);
 }
 
 /* ---------- x-ray crossfade ---------- */
@@ -420,7 +435,7 @@ const hint = document.getElementById("hint");
 const card = document.getElementById("card");
 const cardName = document.getElementById("card-name");
 const cardText = document.getElementById("card-text");
-const chrome = [...document.querySelectorAll(".chrome")].filter((c) => c.id !== "modes");
+const chrome = [...document.querySelectorAll(".chrome")].filter((c) => !["modes","stepui","card"].includes(c.id));
 const modeBtns = [...document.querySelectorAll(".modebtn")];
 const stepui = document.getElementById("stepui");
 const nextBtn = document.getElementById("next");
@@ -613,7 +628,8 @@ canvas.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.cli
 canvas.addEventListener("pointermove", (e) => { moved += Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY); downX = e.clientX; downY = e.clientY; });
 canvas.addEventListener("pointerup", (e) => {
   if (moved > 14 || mode !== 1) return;
-  const nd = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1));
+  if(card.classList.contains("show")||e.clientX<modelStage.x||e.clientX>modelStage.x+modelStage.w||e.clientY<modelStage.y||e.clientY>modelStage.y+modelStage.h)return;
+  const nd = new THREE.Vector2(((e.clientX-modelStage.x)/modelStage.w)*2-1,1-((e.clientY-modelStage.y)/modelStage.h)*2);
   ray.setFromCamera(nd, camera);
   const hit = ray.intersectObjects(pickMeshes, false)[0];
   if (hit && hit.object.userData.part) {
@@ -721,7 +737,7 @@ function tick() {
   }
 
   const len = camera.position.length();
-  camera.position.setLength(lerp(len, camDist, 1 - Math.exp(-2.2 * dt)));
+  if(mode===0)camera.position.setLength(lerp(len, camDist, 1 - Math.exp(-2.2 * dt)));
   /* mode 1 lifts to frame the ghosted spread; mode 2 adds a small lift on
      tall screens so the top labels stay below the narration banner band */
   /* mode 1 lifts to frame the ghosted spread (further on tall screens,
@@ -729,11 +745,16 @@ function tick() {
      engine below the measured narration band at both widths */
   const tall = innerWidth / innerHeight < 0.75;
   const xrayLift = mode === 1 ? (tall ? 2.0 : 1.1) : mode === 2 ? (tall ? 1.5 : 1.45) : 0;
-  controls.target.y = lerp(controls.target.y, baseTargetY + xrayLift, 1 - Math.exp(-2.2 * dt));
+  if(mode===0)controls.target.y = lerp(controls.target.y, baseTargetY + xrayLift, 1 - Math.exp(-2.2 * dt));
   stepSprings(dt);
   controls.update();
+  fitSpatialStage();
   projectLabels();
-  renderer.render(scene, camera);
+  renderer.setViewport(0,0,innerWidth,innerHeight);renderer.setScissorTest(false);renderer.clear();
+  renderer.setViewport(modelStage.x,innerHeight-modelStage.y-modelStage.h,modelStage.w,modelStage.h);
+  renderer.setScissor(modelStage.x,innerHeight-modelStage.y-modelStage.h,modelStage.w,modelStage.h);renderer.setScissorTest(true);
+  if(!card.classList.contains("show")&&!document.body.classList.contains("reasoning"))renderer.render(scene,camera);
+  renderer.setScissorTest(false);
   requestAnimationFrame(tick);
 }
 tick();
@@ -749,3 +770,15 @@ setTimeout(() => {
   setTimeout(() => hint.classList.add("show"), 800);
   wakeChrome();
 }, 1900);
+
+export function spatialLayoutEvidence() {
+ const bounds=[];
+ for(const m of spatialMeshes){
+  if(!m.visible||m.scale.length()<.05)continue;
+  const box=new THREE.Box3().setFromObject(m);
+  for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z]){
+   const v=new THREE.Vector3(x,y,z).project(camera);bounds.push({x:modelStage.x+(v.x*.5+.5)*modelStage.w,y:modelStage.y+(-v.y*.5+.5)*modelStage.h});
+  }
+ }
+ return {mode,stage:{...modelStage},bounds,selected:selectedAnnotation,occluded:!document.querySelector('.leader.on')};
+}
