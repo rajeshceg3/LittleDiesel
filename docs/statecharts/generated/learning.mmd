@@ -1,0 +1,42 @@
+---
+title: "Little Diesel: one learner-controlled stroke"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: thinking
+    lg1: mechanism
+    lg2: reflection
+  }
+  class lg0 teal
+  class lg1 orange
+  class lg2 blue
+  s0: Introduction
+  s1: Predict
+  s2: Feedback
+  s3: Ready
+  s4: Moving
+  s5: Held
+  s6: Transfer
+  s7: Explain it
+  s8: Transfer feedback
+  [*] --> s0
+  s0 --> s1: Think through the first move
+  s1 --> s2: Choose an answer
+  s1 --> s3: Show me this move first
+  s2 --> s4: Watch it
+  s3 --> s4: Watch it
+  s4 --> s5: One stroke finishes
+  s5 --> s1: Next idea [intake, squeeze or power]
+  s5 --> s6: Try a new case [after exhaust]
+  s6 --> s7: Think aloud, then see takeaway
+  s6 --> s8: Choose a case answer
+  s8 --> s7: Explain it in your own words
+  class s0 blue
+  class s1 teal
+  class s2 teal
+  class s3 teal
+  class s4 orange
+  class s5 orange
+  class s6 blue
+  class s7 blue
+  class s8 blue

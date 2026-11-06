@@ -113,3 +113,7 @@ The generated .agents/skills/verify-little-diesel workflow and3feature map were 
 ## Maintenance gate
 
 For a behavior change, update the matching table/invariant first, reproduce any claimed failure through a user path, add a failing-before check, fix, rerun regression plus affected spatial/reading checks, then record exact hosted revision and evidence. Keep unverified claims and invalid model-only inputs out of confirmed issues.
+
+## Committed diagrams and supporting artifacts
+
+[docs/statecharts/README.md](docs/statecharts/README.md) indexes editable TLA+/config/view models, generated Mermaid/SVG, chat-ready PNGs, bounded model-result summaries and safe actual hosted screenshots. Includes separate post-fix note-ownership and idempotent-reveal charts so the implicit machines are not hidden by the original overview. Keep these synchronized with this living file and regression tests. No internal operational material belongs in the public repo.

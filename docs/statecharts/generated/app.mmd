@@ -1,0 +1,42 @@
+---
+title: "Little Diesel: explore or learn"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: motion
+    lg1: view
+  }
+  class lg0 orange
+  class lg1 teal
+  s0: Meet it
+  s1: Lesson introduction
+  s2: Peek inside
+  s3: Continuous cycle
+  s4: Model limits
+  s5: Part detail
+  s6: Finishing current stroke
+  s7: Held stroke
+  [*] --> s0
+  s0 --> s1: Make it go! (starts lesson anew)
+  s0 --> s2: Peek inside
+  s1 --> s0: Meet it
+  s1 --> s2: Peek inside
+  s1 --> s3: Let it run
+  s1 --> s4: Model limits
+  s2 --> s0: Meet it
+  s2 --> s1: Make it go! (starts lesson anew)
+  s2 --> s5: Tap a named part
+  s3 --> s1: Make it go! (starts lesson anew)
+  s3 --> s6: Step it
+  s4 --> s1: Back to the lesson
+  s5 --> s2: Got it!
+  s6 --> s7: Current stroke ends
+  s7 --> s3: Let it run
+  class s0 teal
+  class s1 teal
+  class s2 teal
+  class s3 orange
+  class s4 teal
+  class s5 teal
+  class s6 orange
+  class s7 orange

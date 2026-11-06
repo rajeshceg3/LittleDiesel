@@ -1,0 +1,16 @@
+---
+title: "Playback note ownership after the fix"
+---
+stateDiagram-v2
+  s0: Continuous: no note
+  s1: Continuous: note scheduled
+  s2: Stepped: no autoplay note
+  s3: Continuous: note visible
+  [*] --> s0
+  s0 --> s1: First power stroke schedules note
+  s0 --> s2: Step it: cancel and invalidate
+  s1 --> s2: Step it: cancel and invalidate
+  s1 --> s3: 2.6 seconds: owner still valid
+  s2 --> s0: Let it run
+  s3 --> s0: Got it!
+  s3 --> s2: Step it: cancel and invalidate
