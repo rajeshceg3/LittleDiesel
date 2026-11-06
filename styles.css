@@ -240,3 +240,20 @@ body.reasoning #stepui,body.reasoning #labels,body.reasoning #leaders,body.reaso
 @media(max-height:740px){#reasoning{bottom:145px;padding-top:24px}body.reasoning #lesson-tools{bottom:112px}}
 
 body.reasoning #reasoning{bottom:100px}body.reasoning #lesson-tools{bottom:100px;background:#f7eedd;padding:8px 0}#reasoning{padding-bottom:60px}#next{max-width:none;white-space:nowrap}
+
+#annotation-nav{position:fixed;left:14px;right:14px;z-index:16;display:flex;justify-content:center;}#annotation-nav[hidden]{display:none}
+#annotation-nav select{font:500 17px system-ui,sans-serif;min-height:44px;padding:8px 32px 8px 14px;border:2px solid #33241c;border-radius:15px;color:var(--ink);background:var(--clay);box-shadow:2px 3px 0 #33241c;max-width:calc(100vw - 28px)}
+#annotation-nav select:focus-visible{outline:3px solid #285f9b;outline-offset:4px}
+body.reasoning #annotation-nav{display:none}
+@media(max-height:499px){
+#modes{left:auto;right:12px;bottom:18px;transform:none;width:272px;gap:6px;padding:0}.modebtn{font-size:14px;min-height:44px;padding:4px 7px}
+#stepui{left:auto;right:12px;bottom:84px;transform:none;width:272px;justify-content:center;gap:8px}#next{min-height:44px;padding:4px 14px;font-size:18px}#autotoggle{font-size:14px;padding:4px 10px}
+#banner{top:22px;left:auto;right:12px;width:272px;font-size:27px}#oneliner{top:86px;left:auto;right:12px;width:272px;font-size:16px}#hint{display:none}
+#card,#card.secret{top:auto;left:14px;right:auto;bottom:20px;width:calc(100vw - 320px);max-height:calc(100vh - 40px);overflow:auto;transform:none}#card.show,#card.secret.show{transform:none}
+#lesson-tools{left:auto;right:12px;width:272px;gap:7px}#lesson-tools button{font-size:12px}
+body.reasoning #reasoning{inset:0 0 100px}body.reasoning #lesson-tools{top:auto;bottom:80px;left:0;right:0;width:auto}
+}
+
+body:not(.reasoning) #hint{visibility:hidden}
+
+@media(max-height:499px){#banner{top:48px}#oneliner{top:100px}}
