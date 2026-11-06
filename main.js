@@ -621,6 +621,7 @@ autoBtn.addEventListener("click", () => {
 });
 
 const moreDialog=document.getElementById('more-dialog');
+moreDialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const bs=[...moreDialog.querySelectorAll('button')].filter(b=>!b.hidden&&!b.disabled);const first=bs[0],last=bs.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
 function closeMore(){if(moreDialog.open)moreDialog.close();}
 document.getElementById('journey-more').onclick=()=>moreDialog.showModal();
 document.getElementById('more-close').onclick=closeMore;

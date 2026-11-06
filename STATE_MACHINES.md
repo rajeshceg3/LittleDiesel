@@ -114,6 +114,30 @@ The generated .agents/skills/verify-little-diesel workflow and3feature map were 
 
 For a behavior change, update the matching table/invariant first, reproduce any claimed failure through a user path, add a failing-before check, fix, rerun regression plus affected spatial/reading checks, then record exact hosted revision and evidence. Keep unverified claims and invalid model-only inputs out of confirmed issues.
 
+## Focused controls (current source, hosted gate pending)
+
+The persistent three-mode row is shown only outside the lesson. Within it: introduction has Start learning, Explore engine and More (3buttons, previously8); prediction keeps3answers+skip+Back+More (6, previously10); feedback/held have Watch it or Next idea plus Back+More (3, previously8). The named-part select is an additional model control, not counted as a button. Continuous playback keeps Step it visible with Back+More. No learning step auto-advances.
+
+More is a modal dialog, closed/open with the underlying phase retained. It pauses the cycle, traps Tab/Shift-Tab, closes on Escape, and returns focus to its opener. It contains Close, Let it run (only stepped), Restart lesson (not at introduction, disabled while a stroke moves), About this model, Explore engine. All visible menu actions are44px minimum. A narrow/short viewport can scroll the menu. Closing More happens before opening another reading surface.
+
+| Current state | Action | Result |
+|---|---|---|
+| intro | Start learning / Explore engine | predict0 / Peek inside |
+| any lesson | More / Close or Escape | pause behind modal / return to previous phase |
+| stepped lesson | More → Let it run | continuous playback from current position |
+| continuous | Step it | finish current stroke and hold |
+| prior lesson phase | Back | prior phase via Previous semantics |
+| moving or continuous | Back | exit to Peek inside, no trapped animation |
+| stepped intro | Back | hidden because there is nothing to go back through; Explore engine remains visible |
+| More | Restart lesson | fresh introduction; unavailable while moving |
+| More | About this model | model-limits surface; returns to underlying phase |
+| teachback | Compare | one explanation, primary changes to Explore engine |
+| revealed teachback | Explore engine | Peek inside; Try again lives under More → Restart |
+
+Legacy hidden Previous/Restart/Model limits elements are compatibility handlers, not exposed competing controls. Model limits is now labeled About this model in More. Earlier tables use those action semantics, not current placement. Focused-controls regression verifies actual current routes.
+
+`tests/focused-controls.cjs` locally passed320/390/1320/844: counts, complete4stroke journey (wrong answer and skips), transfer/teachback, More Tab containment/Escape/focus return,44px menu targets/last item reachable, autoplay visible pause, restart state, moving Back exit. Five state regressions locally390 pass through updated paths. Prior spatial part/bounds regression passes all4widths; full4stroke+wheel journey passed all4widths in two batches (the initial combined120s run stopped after320/390, not counted beyond those). Browser emulation, not physical devices.
+
 ## Committed diagrams and supporting artifacts
 
 [docs/statecharts/README.md](docs/statecharts/README.md) indexes editable TLA+/config/view models, generated Mermaid/SVG, chat-ready PNGs, bounded model-result summaries and safe actual hosted screenshots. Includes separate post-fix note-ownership and idempotent-reveal charts so the implicit machines are not hidden by the original overview. Keep these synchronized with this living file and regression tests. No internal operational material belongs in the public repo.

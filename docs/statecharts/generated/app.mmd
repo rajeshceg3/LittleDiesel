@@ -1,5 +1,5 @@
 ---
-title: "Little Diesel: explore or learn"
+title: "Little Diesel: focused exploration and learning"
 ---
 stateDiagram-v2
   state "Legend" as legend {
@@ -11,32 +11,36 @@ stateDiagram-v2
   s0: Meet it
   s1: Lesson introduction
   s2: Peek inside
-  s3: Continuous cycle
-  s4: Model limits
-  s5: Part detail
-  s6: Finishing current stroke
-  s7: Held stroke
+  s3: More options
+  s4: Part detail
+  s5: Continuous cycle
+  s6: Model limits
+  s7: Finishing current stroke
+  s8: Held stroke
   [*] --> s0
-  s0 --> s1: Make it go! (starts lesson anew)
+  s0 --> s1: Make it go!
   s0 --> s2: Peek inside
-  s1 --> s0: Meet it
-  s1 --> s2: Peek inside
-  s1 --> s3: Let it run
-  s1 --> s4: Model limits
+  s1 --> s2: Explore engine / Back exit
+  s1 --> s3: More
   s2 --> s0: Meet it
-  s2 --> s1: Make it go! (starts lesson anew)
-  s2 --> s5: Tap a named part
-  s3 --> s1: Make it go! (starts lesson anew)
-  s3 --> s6: Step it
-  s4 --> s1: Back to the lesson
-  s5 --> s2: Got it!
-  s6 --> s7: Current stroke ends
-  s7 --> s3: Let it run
+  s2 --> s1: Make it go!
+  s2 --> s4: Tap a named part
+  s3 --> s1: Close or Escape
+  s3 --> s2: Explore engine / Back exit
+  s3 --> s5: Let it run
+  s3 --> s6: About this model
+  s4 --> s2: Got it!
+  s5 --> s2: Explore engine / Back exit
+  s5 --> s7: Step it
+  s6 --> s1: Back to the lesson
+  s7 --> s8: Current stroke ends
+  s8 --> s2: Explore engine / Back exit
   class s0 teal
   class s1 teal
   class s2 teal
-  class s3 orange
+  class s3 teal
   class s4 teal
-  class s5 teal
-  class s6 orange
+  class s5 orange
+  class s6 teal
   class s7 orange
+  class s8 orange

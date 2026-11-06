@@ -274,3 +274,4 @@ body.learning-mode.reasoning #stepui{visibility:hidden}
 #more-dialog button:disabled,#journey-nav button:disabled{opacity:.5;cursor:default}
 #more-dialog button:focus-visible,#journey-nav button:focus-visible{outline:3px solid #285f9b;outline-offset:3px}
 @media(max-height:499px){body.learning-mode #stepui{bottom:84px}body.learning-mode #journey-nav{left:auto;width:272px;right:12px;bottom:18px}}
+#more-dialog button[hidden],#journey-nav button[hidden]{display:none}
