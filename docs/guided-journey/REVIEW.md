@@ -26,3 +26,7 @@ Old next-actions workflow targeted removed three-mode DOM. It now exercises guid
 ## Verification boundaries
 
 Real local Chromium browser four widths, all four strokes, prediction/feedback, transfer, teachback, nine connectors in frame, adjustable zoom, exploration resume, play/pause, reset and fullscreen. No browser errors. Pixels inspected. Preview verification pending. No physical iPhone/Safari proof; fallback exists but that is not a hardware claim. Model remains a simplified single cylinder, not a blueprint or real pressure/efficiency simulation. No account/spend/data-storage changes.
+
+## Content grounding
+
+US Department of Energy, Internal Combustion Engine Basics, retrieved10November2026: https://www.energy.gov/cmei/vehicles/articles/internal-combustion-engine-basics . Supports air-only diesel intake, compression, fuel injected into hot air/ignition, gas expansion/piston/crank, four strokes. Existing reducer/questions unchanged. No pressure/temperature/efficiency numbers introduced. Model timing remains simplified and its limits remain disclosed.

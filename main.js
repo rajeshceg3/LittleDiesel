@@ -791,7 +791,15 @@ function render() {
   } else if (["predict", "feedback", "ready", "moving", "held"].includes(ph)) {
     const i = lesson.stroke,
       q = questions[i];
-    title = ph === "predict" ? q.title : STROKES[i].name;
+    title =
+      ph === "predict"
+        ? [
+            "What enters on the first downward move?",
+            "Squeezing: what should the valves do?",
+            "What starts the power stroke?",
+            "How does used gas leave?",
+          ][i]
+        : STROKES[i].name;
     copy = ph === "predict" ? "" : STROKES[i].line;
     more =
       i === 2
@@ -817,8 +825,8 @@ function render() {
       next = i === 3 ? "Try one new case" : "Next step";
     } else next = "Watch this move";
   } else if (ph === "transfer") {
-    title = transfer.title;
-    copy = "Use what you just saw.";
+    title = "What if the inlet stays open while squeezing?";
+    copy = "";
     more =
       "Compression depends on trapping air. Consider what happens if a door stays open.";
     transfer.choices.forEach((c, n) => {
@@ -1066,9 +1074,10 @@ canvas.addEventListener("pointerup", (e) => {
     ),
     camera,
   );
-  const hit = ray
+  const hits = ray
     .intersectObjects(pickMeshes, true)
-    .find((h) => h.object.userData.part);
+    .filter((h) => h.object.userData.part);
+  const hit = hits.find((h) => !h.object.userData.part.xray) || hits[0];
   if (hit) selectPart(PARTS.indexOf(hit.object.userData.part));
 });
 const clock = new THREE.Clock();
@@ -1185,6 +1194,17 @@ export function journeyEvidence() {
     stage: { ...stageSize },
     distance: camera.position.distanceTo(controls.target),
     fittedDistance,
+    rodLength: rodEnds[0].position.distanceTo(rodEnds[1].position),
+    partPoints: PARTS.map((p) => {
+      const v = new THREE.Box3()
+        .setFromObject(p.mesh)
+        .getCenter(new THREE.Vector3())
+        .project(camera);
+      return {
+        x: (v.x * 0.5 + 0.5) * stageSize.w,
+        y: (-v.y * 0.5 + 0.5) * stageSize.h,
+      };
+    }),
     parts: PARTS.map((p) => p.name),
   };
 }

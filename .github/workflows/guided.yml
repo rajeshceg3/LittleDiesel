@@ -12,4 +12,10 @@ jobs:
       - run: npm ci
       - run: |
           python3 -m http.server 8795 >/tmp/server.log 2>&1 &
-          npm test
+          MOTION=no-preference VIEWPORTS='[[320,568],[390,844],[844,390],[1320,900]]' npm test
+          node tests/guided-edge.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guided-browser-evidence
+          path: docs/guided-journey
