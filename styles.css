@@ -275,3 +275,6 @@ body.learning-mode.reasoning #stepui{visibility:hidden}
 #more-dialog button:focus-visible,#journey-nav button:focus-visible{outline:3px solid #285f9b;outline-offset:3px}
 @media(max-height:499px){body.learning-mode #stepui{bottom:84px}body.learning-mode #journey-nav{left:auto;width:272px;right:12px;bottom:18px}}
 #more-dialog button[hidden],#journey-nav button[hidden]{display:none}
+
+/* Quiet alternatives still need a full touch target. */
+#reasoning button.minor{min-height:44px;}
