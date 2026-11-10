@@ -2,11 +2,11 @@
    Answer history is evidence of an interaction, never a mastery score. */
 export const questions = [
   {title:'What does the first downward move draw in?', choices:['Air','Fuel and air already mixed','Used gas'], answer:0,
-   why:['Yes. The inlet opens and the descending piston makes room for fresh air. Fuel comes later.','This diesel takes in air first. The injector adds fuel after the air has been compressed.','Used gas leaves through the other valve during exhaust. This move draws fresh air in.'], part:'air valve'},
+   why:['Yes. The inlet opens and the descending piston makes room for fresh air. Fuel comes later.','This diesel takes in air first. Fuel is added later, after the air has been squeezed.','Used gas leaves through the other valve during exhaust. This move draws fresh air in.'], part:'air valve'},
   {title:'What must the valves do while the piston squeezes the air?', choices:['Both stay shut','The inlet stays open','The exhaust stays open'], answer:0,
-   why:['Shut valves trap the air. The rising piston compresses it, raising its temperature.','An open inlet lets air escape instead of trapping it for compression.','An open exhaust lets air escape. Both valves close for compression.'], part:'valves'},
-  {title:'What starts the power stroke in this diesel?', choices:['Fuel enters the hot compressed air','A spark plug fires','Fresh air alone burns'], answer:0,
-   why:['Fuel ignites in the hot compressed air. Expanding gas pushes the piston, rod and crank.','This engine has no spark plug. Compression heats the air, then injected fuel ignites in it.','Air supports combustion, but the fuel supplies the chemical energy. It is injected into the hot air.'], part:'fuel injector'},
+   why:['Shut valves trap the air. The rising piston compresses it, raising its temperature.','An open inlet lets air escape instead of trapping it for squeezing.','An open exhaust lets air escape. Both valves close to trap the air.'], part:'valves'},
+  {title:'What starts the power stroke in this diesel?', choices:['Fuel enters the hot compressed air','An electric spark lights the fuel','Fresh air alone burns'], answer:0,
+   why:['Fuel ignites in the hot compressed air. Expanding gas pushes the piston, rod and crank.','This engine has no spark plug. Squeezing heats the air, then sprayed fuel starts burning in it.','Air helps burning, but the fuel supplies the energy. It is injected into the hot air.'], part:'fuel injector'},
   {title:'How does the engine clear the used gas?', choices:['Piston rises with exhaust open','Piston drops with inlet open','Both valves stay shut'], answer:0,
    why:['The rising piston pushes used gas through the open exhaust. Then fresh air can enter again.','That is intake. Exhaust needs the other valve open and the piston rising.','Closed valves trap the gas. Exhaust opens to let the rising piston push it out.'], part:'exhaust valve'},
 ];
