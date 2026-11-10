@@ -1,0 +1,54 @@
+[
+  {
+    "w": 390,
+    "h": 844,
+    "mode": "light",
+    "textSamples": 190,
+    "minBodyContrast": 4.5,
+    "resetCamera": true,
+    "heldPose": true,
+    "rodContinuity": true,
+    "nineParts": true,
+    "themeToggle": true,
+    "errors": []
+  },
+  {
+    "w": 390,
+    "h": 844,
+    "mode": "dark",
+    "textSamples": 190,
+    "minBodyContrast": 4.5,
+    "resetCamera": true,
+    "heldPose": true,
+    "rodContinuity": true,
+    "nineParts": true,
+    "themeToggle": true,
+    "errors": []
+  },
+  {
+    "w": 1320,
+    "h": 900,
+    "mode": "light",
+    "textSamples": 180,
+    "minBodyContrast": 4.5,
+    "resetCamera": true,
+    "heldPose": true,
+    "rodContinuity": true,
+    "nineParts": true,
+    "themeToggle": true,
+    "errors": []
+  },
+  {
+    "w": 1320,
+    "h": 900,
+    "mode": "dark",
+    "textSamples": 180,
+    "minBodyContrast": 4.5,
+    "resetCamera": true,
+    "heldPose": true,
+    "rodContinuity": true,
+    "nineParts": true,
+    "themeToggle": true,
+    "errors": []
+  }
+]

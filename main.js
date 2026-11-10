@@ -672,43 +672,43 @@ let lesson = createLesson(),
 const STROKES = [
   {
     name: "Air in",
-    line: "The inlet opens. The descending piston draws fresh air into the cylinder.",
+    line: "Burning fuel needs air. The inlet valve, a small door, opens as the piston moves down and draws air in.",
   },
   {
     name: "Squeeze",
-    line: "Both valves close. The piston rises, compressing the trapped air and heating it.",
+    line: "Diesel needs hot air to light its fuel. Both valves shut; the rising piston squeezes the trapped air, heating it: compression.",
   },
   {
     name: "Power",
-    line: "Fuel is injected into the hot air and ignites. Expanding gas pushes the piston down.",
+    line: "The injector sprays fuel into hot air, where it burns. The gas expands and pushes down: the power stroke.",
   },
   {
     name: "Exhaust",
-    line: "The exhaust opens. The rising piston pushes used gas out, ready for fresh air again.",
+    line: "Used gas must leave before fresh air enters. The outlet, called the exhaust valve, opens while the rising piston pushes gas out.",
   },
 ];
 const descriptions = {
   Piston:
-    "The piston slides inside the cylinder. Gas pushes its crown; its wrist pin passes that push to the connecting rod.",
+    "A moving surface can collect a push from hot gas. The piston slides inside the cylinder; its flat top is the crown and its joint pin is the wrist pin.",
   Cylinder:
-    "The cylinder guides the piston and contains the working gas. This drawing opens a section so you can see inside.",
+    "Gas needs a space that can shrink and grow. The cylinder guides the piston and holds the gas above it; this drawing cuts one side open.",
   "Fuel Injector":
-    "The injector sprays fuel near the end of compression, into air that is already hot. This diesel has no spark plug.",
+    "Fuel must meet the hot air at the right time. The injector makes a fine spray near the end of compression; heat lights it, without an electric spark.",
   Crankshaft:
-    "An offset crank pin turns as the connecting rod pushes and pulls it. The flywheel helps carry motion through the other strokes.",
+    "A wheel needs rotation, not a straight push. The rod acts on a pin away from the crankshaft centre, so the shaft turns; the attached disc is the flywheel.",
   "Cylinder Head":
-    "The head closes the top of the cylinder and carries the valves and injector. Together with shut valves it contains the compressed air.",
+    "Squeezing needs a closed space. The cylinder head seals the top and carries the valves and injector; its front is cut away here.",
   "Engine Block":
-    "The block supports the cylinder and crankshaft. The real block also contains cooling and lubrication passages, left out of this model.",
+    "Moving parts need a firm support. The block holds the cylinder and crankshaft in place; cooling and oil passages are left out of this drawing.",
   "Connecting Rod":
-    "The rod joins the piston wrist pin to the offset crank pin. Its two joints let it tilt while the piston moves straight and the crank turns.",
+    "The piston slides straight, but the crank pin travels in a circle. The connecting rod has a joint at each end, so it can tilt between them.",
 };
 PARTS[4].name = "Inlet Valve";
 PARTS[5].name = "Exhaust Valve";
 descriptions["Inlet Valve"] =
-  "The inlet valve opens for fresh air to enter. It closes before compression so the air cannot escape.";
+  "Air needs a way in, then it must stay trapped. The inlet valve is the door that opens for entry and shuts before squeezing.";
 descriptions["Exhaust Valve"] =
-  "The exhaust valve opens as the piston rises to clear used gas. It stays closed during compression and power.";
+  "Used gas needs a way out. The exhaust valve is the outlet door; it opens as the piston rises to clear the cylinder.";
 PARTS.forEach((p, i) => {
   const o = document.createElement("option");
   o.value = i;
@@ -824,7 +824,7 @@ function render() {
     next = "Next step";
   if (exploring) {
     const p = PARTS[selectedPart];
-    title = p.name;
+    title = "Why do we need the " + p.name.toLowerCase() + "?";
     copy = descriptions[p.name] || p.text;
     more =
       "The dashed connector and dot identify the selected part. The line is a diagram guide, not a pipe or force path; it may pass in front of other parts. Drag the model to see another side. Zoom controls work here too.";
@@ -844,9 +844,9 @@ function render() {
   } else if (ph === "orient") {
     title = "How does a diesel turn a wheel?";
     copy =
-      "Meet one cylinder. Follow the piston, then see how four moves turn fuel into a turning crank.";
+      "A piston is a sliding plug inside a tube: the cylinder. A jointed connecting rod links it to a turning shaft: the crankshaft.";
     more =
-      "The blue piston slides up and down. A jointed rod connects it to the crankshaft below. Drag the model to turn it; zoom in for a closer look. You will move at your own pace.";
+      "A sliding piston cannot turn a wheel by itself. The rod pushes an off-centre pin on the crankshaft, converting the slide into a turn. Drag the model to see the joint.";
     next = "Start learning";
   } else if (["predict", "feedback", "ready", "moving", "held"].includes(ph)) {
     const i = lesson.stroke,
@@ -856,15 +856,15 @@ function render() {
         ? [
             "What enters on the first downward move?",
             "Squeezing: what should the valves do?",
-            "What starts the power stroke?",
+            "What starts the next downward push?",
             "How does used gas leave?",
           ][i]
-        : STROKES[i].name;
+        : ["Why bring air in first?", "Why squeeze the air?", "Why spray fuel into hot air?", "Why clear the used gas?"][i];
     copy = ph === "predict" ? "" : STROKES[i].line;
     more =
       i === 2
-        ? "Fuel supplies chemical energy. Compressed air is hot enough for the injected fuel to ignite: there is no spark plug in this diesel."
-        : "Watch the piston and valves together. The crank turns continuously through the cycle, even though only one stroke adds combustion energy.";
+        ? "Ignition means the start of burning; combustion means burning itself. In this diesel, compression makes the air hot enough to ignite the sprayed fuel."
+        : "A stroke is one trip of the piston, up or down. Only the power stroke adds energy from burning; the turning crank and flywheel carry the other moves.";
     if (ph === "predict") {
       [0, 1, 2]
         .map((n) => (n + i) % 3)
@@ -907,9 +907,9 @@ function render() {
     more =
       "This is a question about the mechanism, not a test score. You can return and try the moves again.";
   } else {
-    title = "From fuel to a turning crank.";
+    title = "How do the moves make a turning crank?";
     copy =
-      "Air in. Squeeze it hot. Inject fuel and get a push. Clear the used gas. The rod and offset crank turn that push into rotation.";
+      "Air in. Squeeze it hot. Spray fuel and get a push. Clear the used gas. The rod and off-centre crank pin turn the push into rotation.";
     more =
       "Try explaining it: why must both valves close for compression? When does fuel enter? How does a straight-moving piston turn a crank? Only the power stroke adds combustion energy; motion carries the engine through the other strokes.";
     next = "Run the whole cycle";
