@@ -1,0 +1,30 @@
+[
+  {
+    "width": 844,
+    "questionLoop": true,
+    "parts9": true,
+    "allConnectors": true,
+    "zoomAdjustable": true,
+    "resume": true,
+    "fourStrokes": true,
+    "transfer": true,
+    "playPause": true,
+    "reset": true,
+    "fullscreen": true,
+    "errors": []
+  },
+  {
+    "width": 1320,
+    "questionLoop": true,
+    "parts9": true,
+    "allConnectors": true,
+    "zoomAdjustable": true,
+    "resume": true,
+    "fourStrokes": true,
+    "transfer": true,
+    "playPause": true,
+    "reset": true,
+    "fullscreen": true,
+    "errors": []
+  }
+]

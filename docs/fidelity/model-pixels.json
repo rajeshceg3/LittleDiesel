@@ -1,0 +1,108 @@
+[
+  {
+    "theme": "light",
+    "samples": [
+      {
+        "part": "inlet-stem",
+        "x": 167,
+        "y": 157,
+        "pixel": [
+          61,
+          126,
+          85
+        ],
+        "background": [
+          246,
+          237,
+          220
+        ],
+        "ratio": 4.19
+      },
+      {
+        "part": "head-fin",
+        "x": 229,
+        "y": 141,
+        "pixel": [
+          122,
+          74,
+          34
+        ],
+        "background": [
+          246,
+          237,
+          220
+        ],
+        "ratio": 6.38
+      },
+      {
+        "part": "flywheel",
+        "x": 151,
+        "y": 256,
+        "pixel": [
+          85,
+          115,
+          115
+        ],
+        "background": [
+          246,
+          237,
+          220
+        ],
+        "ratio": 4.42
+      }
+    ]
+  },
+  {
+    "theme": "dark",
+    "samples": [
+      {
+        "part": "inlet-stem",
+        "x": 166,
+        "y": 157,
+        "pixel": [
+          125,
+          172,
+          131
+        ],
+        "background": [
+          36,
+          35,
+          33
+        ],
+        "ratio": 6.06
+      },
+      {
+        "part": "head-fin",
+        "x": 229,
+        "y": 141,
+        "pixel": [
+          213,
+          174,
+          123
+        ],
+        "background": [
+          36,
+          35,
+          33
+        ],
+        "ratio": 7.6
+      },
+      {
+        "part": "flywheel",
+        "x": 150,
+        "y": 256,
+        "pixel": [
+          143,
+          181,
+          178
+        ],
+        "background": [
+          36,
+          35,
+          33
+        ],
+        "ratio": 7.04
+      }
+    ]
+  }
+]
