@@ -1,0 +1,38 @@
+{
+  "runtime": "e972c76f08921ae4edf2540572e3dcf85643802c",
+  "status": "success",
+  "statuses": [
+    {
+      "context": "Vercel",
+      "state": "success",
+      "target_url": "https://vercel.com/rajeshceg3s-projects/littlediesel/BM6kfkcKGg1ED2iEXZHUdovbVgtM"
+    }
+  ],
+  "ci": [
+    {
+      "head_sha": "e972c76f08921ae4edf2540572e3dcf85643802c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/rajeshceg3/LittleDiesel/actions/runs/42760105633"
+    }
+  ],
+  "hosted_viewports": [
+    [
+      320,
+      700
+    ],
+    [
+      390,
+      844
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      1320,
+      900
+    ]
+  ],
+  "hosted_result": "PASS, real hit tests,44px targets, final reading order,4stroke journey,keyboard,dialog,autoplay,Back/reenter; zero pageerrors/overflow"
+}

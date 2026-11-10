@@ -1,0 +1,22 @@
+[
+  {
+    "file": "index.html",
+    "url": "https://littlediesel.vercel.app/index.html",
+    "sha256": "484d0c64560ad8e1893ec9a2d2f700c216eb9c92d2af89a0ba229b6657859d6e"
+  },
+  {
+    "file": "main.js",
+    "url": "https://littlediesel.vercel.app/main.js",
+    "sha256": "8969bfb433cae1b2b2c45e69632b247918a0e3229f43c32dc390d2097960c8cc"
+  },
+  {
+    "file": "styles.css",
+    "url": "https://littlediesel.vercel.app/styles.css",
+    "sha256": "5dcd9a5db47333a5e63036ec5261e9ef1720c41e5bba6f1d72ad05bfee3c13e8"
+  },
+  {
+    "file": "learning.js",
+    "url": "https://littlediesel.vercel.app/learning.js",
+    "sha256": "ab1872f4b95c102a7b623037fd49948faa873573dff86b337f00f9c9cfa2e806"
+  }
+]

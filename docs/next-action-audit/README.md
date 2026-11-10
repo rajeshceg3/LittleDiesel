@@ -9,3 +9,6 @@ The expanded next-action browser harness checks visible controls for44px height 
 Reproduce: npm install --no-save playwright@1.56.1; VIEWPORTS='[[390,844]]' node tests/next-action-audit.cjs. Set TARGET_URL for hosted verification, EVIDENCE_DIR for screenshots. Script uses system Chrome. Production acceptance requires exact served bytes and hosted journeys after merge.
 
 Scope: no claim of physical-device/Safari timing, fresh whole-model fidelity or full-app learning effectiveness.
+
+## Production
+PR21 merged normally after both exact-head four-width CI matrices passed. Runtime e972c76f08921ae4edf2540572e3dcf85643802c; exact main CI42760105633 green; Vercel exact-commit status success. Public https://littlediesel.vercel.app serves all four exact runtime files. Expanded public hosted journey passed all four viewports, including real control-hit/44px checks and final action order. Actual hosted390/844/1320final reading/action screenshots inspected. No model/persistence/provider change. Evidence branch is not production code.
