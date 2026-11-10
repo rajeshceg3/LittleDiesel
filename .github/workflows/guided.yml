@@ -1,0 +1,15 @@
+name: Guided engine journey
+on: [push, pull_request]
+jobs:
+  journey:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: |
+          python3 -m http.server 8795 >/tmp/server.log 2>&1 &
+          npm test
