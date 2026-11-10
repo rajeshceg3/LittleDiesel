@@ -74,6 +74,11 @@ let stageSize = { w: 1, h: 1 };
 let fittedDistance = 9;
 let teachingBounds = null;
 function fitCamera() {
+  // Consume any leftover orbit inertia before restoring the canonical pose.
+  const damping = controls.enableDamping;
+  controls.enableDamping = false;
+  controls.update();
+  controls.enableDamping = damping;
   const r = canvas.getBoundingClientRect();
   stageSize = { w: r.width, h: r.height };
   renderer.setSize(r.width, r.height, false);
