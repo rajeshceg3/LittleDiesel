@@ -1,0 +1,30 @@
+{
+  "url": "https://littlediesel.vercel.app/",
+  "runtime_commit": "ed25edcd812e635c99a69e2095af3d9798fe15ce",
+  "files": [
+    {
+      "file": "index.html",
+      "served_sha256": "a761abb11e4361092f1fdf76b2d68cd96e94e3a4e46ef68547b2498549660a53",
+      "source_sha256": "a761abb11e4361092f1fdf76b2d68cd96e94e3a4e46ef68547b2498549660a53",
+      "match": true
+    },
+    {
+      "file": "main.js",
+      "served_sha256": "4665b46a80bb75143c9a3332a424656d6d716443320e37e44cfd16ea6ffd4783",
+      "source_sha256": "4665b46a80bb75143c9a3332a424656d6d716443320e37e44cfd16ea6ffd4783",
+      "match": true
+    },
+    {
+      "file": "styles.css",
+      "served_sha256": "5f902f19de857d9cc6a8df10ff52685eec38077f1fd2b7b5827a9013f47017e0",
+      "source_sha256": "5f902f19de857d9cc6a8df10ff52685eec38077f1fd2b7b5827a9013f47017e0",
+      "match": true
+    },
+    {
+      "file": "learning.js",
+      "served_sha256": "ab1872f4b95c102a7b623037fd49948faa873573dff86b337f00f9c9cfa2e806",
+      "source_sha256": "ab1872f4b95c102a7b623037fd49948faa873573dff86b337f00f9c9cfa2e806",
+      "match": true
+    }
+  ]
+}
