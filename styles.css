@@ -696,3 +696,11 @@ body.focus-mode {
 #guide-content::-webkit-scrollbar-track {
   background: #eee0c8;
 }
+
+#scroll-hint {
+  font-size: 14px;
+  color: #775a46;
+  text-align: right;
+  margin-top: 4px;
+  flex: none;
+}

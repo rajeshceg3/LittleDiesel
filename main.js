@@ -723,6 +723,17 @@ function setPhase(action) {
     $("feedback").classList.add("answer-enter");
   }
 }
+function updateScrollHint() {
+  const e = $("guide-content");
+  $("scroll-hint").hidden = !(
+    e.scrollHeight > e.clientHeight + 10 &&
+    e.scrollTop + e.clientHeight < e.scrollHeight - 10
+  );
+}
+$("guide-content").addEventListener("scroll", updateScrollHint, {
+  passive: true,
+});
+new ResizeObserver(updateScrollHint).observe($("guide-content"));
 function render() {
   const ph = lesson.phase;
   document.body.dataset.phase = exploring
@@ -880,6 +891,7 @@ function render() {
     `Journey position ${active + 1} of 6`,
   );
   highlight();
+  requestAnimationFrame(updateScrollHint);
 }
 function animateStroke() {
   if (moving) return;
