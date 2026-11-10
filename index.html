@@ -1,54 +1,133 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Little Diesel</title>
-<meta name="description" content="A friendly 3D diesel engine for kids - open it up, meet the parts, and watch it go BOOM.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='%23e8735a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=focused-1">
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-} }
-</script>
-</head>
-<body>
-<canvas id="engine" aria-label="A 3D diesel engine you can spin around."></canvas>
-
-<svg id="leaders" aria-hidden="true"></svg>
-<div id="labels" aria-hidden="true"></div>
-
-<div id="veil" aria-hidden="true">
-  <h1 class="wordmark">Little<br>Diesel</h1>
-</div>
-
-<div id="banner" class="chrome" aria-live="polite"></div>
-<p id="oneliner" class="chrome"></p>
-<p id="hint" class="chrome"></p>
-
-<div id="card" class="chrome" role="status">
-  <h2 id="card-name"></h2>
-  <p id="card-text"></p>
-  <button id="card-ok" type="button">Got it!</button>
-</div>
-
-<section id="reasoning" aria-label="Think it through" hidden></section>
-<div id="lesson-tools" hidden><button id="previous" type="button">Previous</button><button id="restart" type="button">Start over</button><button id="model-note" type="button">Model limits</button></div>
-<div id="stepui" class="chrome">
-  <button id="next" type="button">Go!</button>
-  <button id="autotoggle" type="button">Let it run</button>
-</div>
-
-<div id="journey-nav" hidden><button id="journey-back" type="button">Back</button><button id="journey-more" type="button" aria-haspopup="dialog">More</button></div>
-<dialog id="more-dialog" aria-labelledby="more-title"><h2 id="more-title">More options</h2><button id="more-close" type="button">Close</button><button id="more-run" type="button">Let it run</button><button id="more-restart" type="button">Restart lesson</button><button id="more-limits" type="button">About this model</button><button id="more-explore" type="button">Explore engine</button></dialog>
-<nav id="modes" class="chrome" aria-label="What to do">
-  <button class="modebtn" data-mode="0" type="button">Meet it</button>
-  <button class="modebtn" data-mode="1" type="button">Peek inside</button>
-  <button class="modebtn" data-mode="2" type="button">Make it go!</button>
-</nav>
-
-<script type="module" src="main.js?v=focused-1"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Little Diesel</title>
+    <meta
+      name="description"
+      content="Follow a warm, hand-inked diesel engine one move at a time. A guided four-stroke journey with a model you can turn and explore."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <a href="./" aria-label="Little Diesel home"
+        >Little Diesel<span aria-hidden="true">✦</span></a
+      ><button id="parts-toggle" aria-expanded="false">
+        Look at parts one by one
+      </button>
+    </header>
+    <main id="workshop">
+      <section id="model-stage" aria-label="Engine model">
+        <canvas
+          id="engine"
+          aria-label="A hand-inked diesel engine. Drag to turn; use the zoom buttons to look closer."
+        ></canvas
+        ><svg id="leaders" aria-hidden="true">
+          <path id="part-line" />
+          <circle id="part-anchor" r="6" /></svg
+        ><span id="part-tag" hidden></span>
+        <div id="view-tools">
+          <button id="zoom-in" aria-label="Zoom in" title="Zoom in">＋</button
+          ><button id="zoom-out" aria-label="Zoom out" title="Zoom out">
+            −</button
+          ><button
+            id="reset-view"
+            aria-label="Reset model view"
+            title="Reset model view"
+          >
+            ⌾</button
+          ><button
+            id="fullscreen"
+            aria-label="Enter full screen"
+            title="Full screen"
+          >
+            <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </section>
+      <section id="guide" aria-label="Guided engine journey">
+        <div id="guide-content" aria-live="polite">
+          <h1 id="step-title" tabindex="-1"></h1>
+          <p id="step-copy"></p>
+          <div id="answers"></div>
+          <p id="feedback"></p>
+          <div id="part-picker" hidden>
+            <label for="part-select">Choose a part</label
+            ><select id="part-select"></select>
+          </div>
+          <details id="read-more">
+            <summary>Read a little more</summary>
+            <p id="more-copy"></p>
+            <button id="limits-open" class="quiet">About this model</button>
+          </details>
+        </div>
+        <span id="scroll-hint" hidden>Scroll for more ↓</span>
+        <div id="journey-controls">
+          <div id="progress" aria-label="Journey progress"></div>
+          <div class="actions">
+            <button
+              id="back"
+              class="icon"
+              aria-label="Previous step"
+              title="Previous step"
+            >
+              ←</button
+            ><button id="next">
+              Start learning <span aria-hidden="true">→</span></button
+            ><button
+              id="play"
+              class="icon"
+              aria-label="Play the engine cycle"
+              title="Play the engine cycle"
+            >
+              ▶</button
+            ><button
+              id="reset"
+              class="icon"
+              aria-label="Restart journey"
+              title="Restart journey"
+            >
+              ↺
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <dialog id="limits">
+      <h2>A model, not a whole engine</h2>
+      <p>
+        One cylinder and four strokes, drawn to show the idea. Parts are not to
+        scale. Colour suggests changing conditions, not measured temperature.
+        Real valve timing, camshaft, lubrication and starter are left out.
+      </p>
+      <p>
+        The crank and rod show the motion connection, not a calculation of
+        pressure, efficiency or whether a real engine would start.
+      </p>
+      <button id="limits-close">Back to the engine</button>
+    </dialog>
+    <script type="module" src="main.js"></script>
+  </body>
 </html>

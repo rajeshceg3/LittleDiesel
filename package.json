@@ -1,0 +1,27 @@
+{
+  "name": "little-diesel",
+  "version": "1.0.0",
+  "description": "A friendly 3D diesel engine for kids - open it up, meet the parts, and watch it go BOOM.",
+  "main": "main.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --check main.js && node tests/guided.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajeshceg3/LittleDiesel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rajeshceg3/LittleDiesel/issues"
+  },
+  "homepage": "https://github.com/rajeshceg3/LittleDiesel#readme",
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}
