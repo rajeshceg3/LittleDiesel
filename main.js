@@ -43,6 +43,8 @@ const renderer = new THREE.WebGLRenderer({
   alpha: false,
 });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7eedd");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
@@ -52,6 +54,11 @@ const hemi = new THREE.HemisphereLight(0xfff8ec, 0xe6cba6, 1.2);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 1.1);
 sun.position.set(4, 8, 5);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -5, right: 5, top: 7, bottom: -3, near: 0.5, far: 20 });
+sun.shadow.normalBias = 0.035;
+sun.shadow.bias = -0.0005;
 scene.add(sun);
 
 const controls = new OrbitControls(camera, canvas);
@@ -65,14 +72,15 @@ controls.autoRotate = false;
 const stage = document.getElementById("model-stage");
 let stageSize = { w: 1, h: 1 };
 let fittedDistance = 9;
+let teachingBounds = null;
 function fitCamera() {
-  const r = stage.getBoundingClientRect();
+  const r = canvas.getBoundingClientRect();
   stageSize = { w: r.width, h: r.height };
   renderer.setSize(r.width, r.height, false);
   camera.aspect = r.width / r.height;
   camera.updateProjectionMatrix();
   const center = new THREE.Vector3(0, 2.05, 0),
-    dir = new THREE.Vector3(4.1, 1.1, 7.8).normalize();
+    dir = new THREE.Vector3(7.2, 2.0, 6.8).normalize();
   camera.position.copy(center).addScaledVector(dir, 10);
   camera.lookAt(center);
   camera.updateMatrixWorld(true);
@@ -80,13 +88,12 @@ function fitCamera() {
     ty = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)),
     tx = ty * camera.aspect;
   let d = 0;
-  for (const x of [-1.7, 1.7])
-    for (const y of [0, 4.4])
-      for (const z of [-1.1, 1.1]) {
-        const v = new THREE.Vector3(x, y, z).sub(center).applyQuaternion(inv);
-        d = Math.max(d, v.z + Math.max(Math.abs(v.x) / tx, Math.abs(v.y) / ty));
-      }
-  fittedDistance = d * 1.07;
+  const points = teachingBounds || [new THREE.Vector3(-1.7, 0, -1.1), new THREE.Vector3(1.7, 4.6, 1.1)];
+  for (const point of points) {
+    const v = point.clone().sub(center).applyQuaternion(inv);
+    d = Math.max(d, v.z + Math.max(Math.abs(v.x) / tx, Math.abs(v.y) / ty));
+  }
+  fittedDistance = d * 1.04;
   controls.target.copy(center);
   camera.position.copy(center).addScaledVector(dir, fittedDistance);
   controls.minDistance = fittedDistance * 0.5;
@@ -100,12 +107,18 @@ const blob = new THREE.Mesh(
   new THREE.MeshBasicMaterial({
     color: "#e4d3b6",
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.26,
   }),
 );
 blob.rotation.x = -Math.PI / 2;
 blob.position.y = -0.02;
 scene.add(blob);
+const contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(40, 40),
+  new THREE.ShadowMaterial({ opacity: 0.18 }));
+contactShadow.rotation.x = -Math.PI / 2;
+contactShadow.position.y = -0.01;
+contactShadow.receiveShadow = true;
+scene.add(contactShadow);
 
 /* ---------- ink helpers ---------- */
 const INK = "#33241c";
@@ -186,7 +199,7 @@ const shell = new THREE.Mesh(
     color: "#aebfca",
     gradientMap: toon3,
     transparent: true,
-    opacity: 0.45,
+    opacity: 0.15,
     side: THREE.DoubleSide,
   }),
 );
@@ -226,26 +239,26 @@ wrist.rotation.z = Math.PI / 2;
 piston.add(wrist);
 inkify(wrist, 1.045);
 
-/* head (the lid) */
+/* Rear half of the head: an explicit teaching section, not a transparent lid. */
 const head = new THREE.Mesh(
-  new RoundedBoxGeometry(2.2, 0.7, 1.7, 4, 0.24),
-  clay("#f2b25c"),
+  new RoundedBoxGeometry(2.2, 0.7, 0.74, 4, 0.12),
+  clay("#c78837"),
 );
-head.position.y = 3.62;
+head.position.set(0, 3.62, -0.48);
 engine.add(head);
 
 /* valves: intake + exhaust */
 const valveIn = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.065, 0.065, 0.9, 20),
-  clay("#7dcfa0"),
+  new THREE.CylinderGeometry(0.095, 0.095, 0.9, 24),
+  clay("#49986d"),
 );
-valveIn.position.set(-0.43, 3.75, 0);
+valveIn.position.set(-0.62, 3.75, 0.22);
 engine.add(valveIn);
 const valveOut = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.065, 0.065, 0.9, 20),
-  clay("#9a8fb8"),
+  new THREE.CylinderGeometry(0.095, 0.095, 0.9, 24),
+  clay("#8b72a6"),
 );
-valveOut.position.set(0.43, 3.75, 0);
+valveOut.position.set(0.62, 3.75, 0.22);
 engine.add(valveOut);
 
 /* Poppet faces meet the underside of the head; visible springs above it. */
@@ -254,7 +267,7 @@ for (const [v, color] of [
   [valveOut, "#9a8fb8"],
 ]) {
   const face = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.2, 0.24, 0.075, 28),
+    new THREE.CylinderGeometry(0.255, 0.28, 0.10, 32),
     clay(color),
   );
   face.position.y = -0.43;
@@ -263,16 +276,16 @@ for (const [v, color] of [
   const points = Array.from({ length: 97 }, (_, i) => {
     const a = (i / 96) * Math.PI * 10;
     return new THREE.Vector3(
-      Math.cos(a) * 0.12,
+      Math.cos(a) * 0.15,
       0.13 + (i / 96) * 0.3,
-      Math.sin(a) * 0.12,
+      Math.sin(a) * 0.15,
     );
   });
   const coil = new THREE.Mesh(
     new THREE.TubeGeometry(
       new THREE.CatmullRomCurve3(points),
       96,
-      0.022,
+      0.029,
       6,
       false,
     ),
@@ -283,14 +296,15 @@ for (const [v, color] of [
 /* Cooling fins and bolts articulate the cylinder head, without new UI. */
 for (const y of [-0.15, 0.04, 0.23]) {
   const fin = new THREE.Mesh(
-    new RoundedBoxGeometry(2.3, 0.055, 1.8, 2, 0.025),
-    clay("#e5a452"),
+    new RoundedBoxGeometry(2.3, 0.065, 0.82, 2, 0.025),
+    clay("#8e592d"),
   );
   fin.position.y = y;
+  fin.userData.fin = true;
   head.add(fin);
 }
 for (const x of [-0.88, 0.88])
-  for (const z of [-0.62, 0.62]) {
+  for (const z of [-0.22, 0.22]) {
     const bolt = new THREE.Mesh(
       new THREE.CylinderGeometry(0.075, 0.075, 0.08, 6),
       clay("#766652"),
@@ -301,13 +315,13 @@ for (const x of [-0.88, 0.88])
 
 /* fuel injector */
 const injector = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.13, 0.2, 1.0, 16),
+  new THREE.CylinderGeometry(0.17, 0.23, 1.0, 24),
   clay("#f0924c"),
 );
-injector.position.set(0, 3.98, 0.22);
+injector.position.set(0, 3.98, -0.08);
 injector.rotation.x = 0.18;
 const nozzle = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.055, 0.028, 0.26, 16),
+  new THREE.CylinderGeometry(0.075, 0.035, 0.26, 20),
   clay("#665b51"),
 );
 nozzle.position.y = -0.6;
@@ -326,7 +340,7 @@ engine.add(injector);
 const crank = new THREE.Group();
 const crankAxle = new THREE.Mesh(
   new THREE.CylinderGeometry(0.22, 0.22, 2.2, 20),
-  clay("#8a6f4d"),
+  clay("#725035"),
 );
 crankAxle.rotation.z = Math.PI / 2;
 crank.add(crankAxle);
@@ -374,7 +388,7 @@ crank.position.y = 1.0;
 engine.add(crank);
 const rod = new THREE.Mesh(
   new THREE.CylinderGeometry(0.09, 0.09, 1, 16),
-  clay("#c9d4dc"),
+  clay("#7e9aa8"),
 );
 engine.add(rod);
 const rodEnds = [];
@@ -424,8 +438,38 @@ crankAxle.rotation.z = Math.PI / 2;
 inkify(crankWeb, 1.06);
 inkify(crankWeb2, 1.06);
 inkify(journal, 1.035);
+hulls.get(shell).material.opacity = 0;
 const ghosts = new Map();
 [block, head, shell].forEach((m) => ghosts.set(m, ghostify(m)));
+ghosts.get(shell).material.color.set("#789baa");
+ghosts.get(shell).material.opacity = 0.42;
+
+/* Contact shadows give the inked clay a quiet sense of depth. */
+engine.traverse((m) => {
+  if (m.isMesh && !m.material.transparent) {
+    m.castShadow = true;
+    m.receiveShadow = true;
+  }
+});
+/* Schematic arrows expose the two motions without adding text over the model. */
+const pistonMotion = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0),
+  new THREE.Vector3(1.10, 2.8, 0.18), 0.62, 0x285f7c, 0.18, 0.13);
+engine.add(pistonMotion);
+pistonMotion.visible = false;
+const crankMotion = new THREE.Group();
+const arc = new THREE.Mesh(new THREE.TorusGeometry(0.84, 0.025, 8, 48, Math.PI * 1.6),
+  new THREE.MeshBasicMaterial({ color: "#9c572d" }));
+arc.rotation.y = Math.PI / 2;
+crankMotion.add(arc);
+const arcTip = new THREE.Mesh(new THREE.ConeGeometry(0.10, 0.22, 12),
+  new THREE.MeshBasicMaterial({ color: "#9c572d" }));
+const end = Math.PI * 1.6;
+arcTip.position.set(0, Math.sin(end) * 0.84, -Math.cos(end) * 0.84);
+arcTip.rotation.x = end;
+crankMotion.add(arcTip);
+crankMotion.position.set(-1.23, 1, 0);
+engine.add(crankMotion);
+crankMotion.visible = false;
 
 /* The chamber occupies only the space above the piston crown.
    Warmth is a teaching cue, not a simulated temperature. */
@@ -570,11 +614,11 @@ flywheel.userData.part = PARTS[3];
 
 function setXrayTargets(on) {
   for (const [mesh, edges] of ghosts) {
-    spring(edges.material, "opacity", on ? 0.9 : 0, {
+    spring(edges.material, "opacity", on ? 0.65 : mesh === shell ? 0.42 : 0, {
       stiffness: 40,
       damping: 10,
     });
-    spring(mesh.material, "opacity", on ? 0.16 : mesh === shell ? 0.45 : 1, {
+    spring(mesh.material, "opacity", mesh === shell ? (on ? 0.09 : 0.15) : on ? 0.38 : 1, {
       stiffness: 40,
       damping: 10,
     });
@@ -584,7 +628,7 @@ function setXrayTargets(on) {
           child.material.transparent = true;
           child.material.needsUpdate = true;
         }
-        spring(child.material, "opacity", on ? 0.16 : 1, {
+        spring(child.material, "opacity", on ? 0.38 : 1, {
           stiffness: 40,
           damping: 10,
         });
@@ -600,7 +644,7 @@ function setXrayTargets(on) {
        dark inverted shell where the part was */
     const hull = hulls.get(mesh);
     if (hull)
-      spring(hull.material, "opacity", on ? 0 : 1, {
+      spring(hull.material, "opacity", mesh === shell ? 0 : on ? 0.24 : 1, {
         stiffness: 40,
         damping: 10,
       });
@@ -987,6 +1031,7 @@ $("reset").onclick = () => {
   piston.position.y = 2.6;
   crank.position.y = 1;
   linkage(0);
+  fitCamera();
   render();
 };
 $("zoom-in").onclick = () => {
@@ -1092,6 +1137,41 @@ canvas.addEventListener("pointerup", (e) => {
   const hit = hits.find((h) => !h.object.userData.part.xray) || hits[0];
   if (hit) selectPart(PARTS.indexOf(hit.object.userData.part));
 });
+const rim = new THREE.DirectionalLight(0xe3f0ff, 0);
+rim.position.set(-4, 5, -2);
+scene.add(rim);
+const themeColors = new Map([
+  [block, ["#e8735a", "#e99479"]], [head, ["#c78837", "#d9a65f"]],
+  [flywheel, ["#648c92", "#9ac8cc"]],
+  [crankAxle, ["#725035", "#bc976e"]], [rod, ["#7e9aa8", "#b7cbd4"]],
+  [valveIn, ["#49986d", "#86bd96"]], [valveOut, ["#8b72a6", "#bca2d3"]],
+]);
+const themeQuery = matchMedia("(prefers-color-scheme: dark)");
+let themeOverride = null;
+function applyTheme() {
+  const dark = themeOverride ?? themeQuery.matches;
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  scene.background.set(dark ? "#242321" : "#f7eedd");
+  blob.material.color.set(dark ? "#37332f" : "#e4d3b6");
+  hemi.intensity = dark ? 1.55 : 1.2;
+  rim.intensity = dark ? 1.2 : 0.22;
+  for (const [mesh, colors] of themeColors) mesh.material.color.set(colors[dark ? 1 : 0]);
+  for (const fin of head.children.filter(m => m.userData.fin)) {
+    fin.material.color.set(dark ? "#e6c392" : "#8e592d");
+    fin.material.emissive.set(dark ? "#8b734f" : "#000000");
+    fin.material.emissiveIntensity = dark ? 0.45 : 0;
+  }
+  ghosts.get(shell).material.color.set(dark ? "#b2d2df" : "#789baa");
+  $("theme").setAttribute("aria-label", dark ? "Use light theme" : "Use dark theme");
+  $("theme").setAttribute("aria-pressed", String(dark));
+  $("theme").textContent = dark ? "☀" : "☾";
+}
+$("theme").onclick = () => {
+  themeOverride = document.documentElement.dataset.theme !== "dark";
+  applyTheme();
+};
+themeQuery.addEventListener("change", applyTheme);
+applyTheme();
 const clock = new THREE.Clock();
 let lastPlayStroke = -1;
 function tick() {
@@ -1127,6 +1207,15 @@ function tick() {
       3.75 - (stroke === 0 ? Math.sin(f * Math.PI) * 0.3 : 0);
     valveOut.position.y =
       3.75 - (stroke === 3 ? Math.sin(f * Math.PI) * 0.3 : 0);
+    const downward = stroke === 0 || stroke === 2;
+    pistonMotion.visible = true;
+    pistonMotion.position.set(1.10, piston.position.y + (downward ? 0.4 : -0.4), 0.18);
+    pistonMotion.setDirection(new THREE.Vector3(0, downward ? -1 : 1, 0));
+    const dark = document.documentElement.dataset.theme === "dark";
+    pistonMotion.setColor(stroke === 2 ? (dark ? 0xf3ab72 : 0xac4c28) : (dark ? 0x86c5e2 : 0x285f7c));
+    arc.material.color.set(dark ? "#c98d51" : "#a5642a");
+    arcTip.material.color.copy(arc.material.color);
+    crankMotion.visible = true;
     const crown = piston.position.y + 0.36,
       ch = Math.max(0.025, 3.28 - crown);
     boom.position.y = crown + ch / 2;
@@ -1171,6 +1260,7 @@ function tick() {
       d.scale.setScalar(1 + u * 1.6);
     });
   } else {
+    pistonMotion.visible = crankMotion.visible = false;
     piston.position.y = 2.6;
     crank.position.y = 1;
     valveIn.position.y = valveOut.position.y = 3.75;
@@ -1190,6 +1280,13 @@ function tick() {
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
+scene.updateMatrixWorld(true);
+teachingBounds = [];
+for (const p of PARTS) {
+  const b = new THREE.Box3().setFromObject(p.mesh);
+  for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z])
+    teachingBounds.push(new THREE.Vector3(x, y, z));
+}
 render();
 fitCamera();
 tick();
@@ -1206,6 +1303,11 @@ export function journeyEvidence() {
     stage: { ...stageSize },
     distance: camera.position.distanceTo(controls.target),
     fittedDistance,
+    camera: camera.position.toArray(),
+    target: controls.target.toArray(),
+    theme: document.documentElement.dataset.theme,
+    valveLift: [3.75 - valveIn.position.y, 3.75 - valveOut.position.y],
+    crankAngle: crank.rotation.x,
     rodLength: rodEnds[0].position.distanceTo(rodEnds[1].position),
     partPoints: PARTS.map((p) => {
       const v = new THREE.Box3()
@@ -1217,6 +1319,11 @@ export function journeyEvidence() {
         y: (-v.y * 0.5 + 0.5) * stageSize.h,
       };
     }),
+    pixelAnchors: [["inlet-stem", new THREE.Vector3(-0.62, 3.55, 0.22)],
+      ["head-fin", new THREE.Vector3(0.80, 3.85, -0.10)],
+      ["flywheel", new THREE.Vector3(-1.2, 1.35, 0.25)]].map(([name, v]) => {
+        v.project(camera); return { name, x: (v.x * 0.5 + 0.5) * stageSize.w, y: (-v.y * 0.5 + 0.5) * stageSize.h };
+      }),
     parts: PARTS.map((p) => p.name),
   };
 }

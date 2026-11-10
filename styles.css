@@ -704,3 +704,29 @@ body.focus-mode {
   margin-top: 4px;
   flex: none;
 }
+
+/* Local fidelity pass: accessible controls retain the accepted paper/clay palette. */
+#next { background: #a5422c; color: #fffaf0; }
+#next:hover { background: #8c3625; }
+#theme { font-size: 24px; }
+:root[data-theme="dark"] { --paper: #242321; --ink: #f1e4d0; --clay: #514238; --coral: #ed9979; color-scheme: dark; }
+:root[data-theme="dark"] #model-stage { background: #242321; }
+:root[data-theme="dark"] button, :root[data-theme="dark"] select { border-color: #bca48b; background: #514238; box-shadow: 2px 3px 0 #151310; }
+:root[data-theme="dark"] button:hover { background: #655040; }
+:root[data-theme="dark"] .icon, :root[data-theme="dark"] #parts-toggle { background: transparent; box-shadow: none; }
+:root[data-theme="dark"] #next { background: #eaa07d; color: #2f221c; border-color: #eaa07d; }
+:root[data-theme="dark"] #next:hover { background: #f2b798; }
+:root[data-theme="dark"] summary, :root[data-theme="dark"] .quiet, :root[data-theme="dark"] #scroll-hint { color: #d8bea0; }
+:root[data-theme="dark"] #view-tools button, :root[data-theme="dark"] #part-tag, :root[data-theme="dark"] dialog { background: #39312b; color: #f1e4d0; }
+:root[data-theme="dark"] #part-line { stroke: #f1e4d0; }
+:root[data-theme="dark"] #progress i { background: #80705e; }
+:root[data-theme="dark"] #progress i.active { background: #eaa07d; }
+:root[data-theme="dark"] :focus-visible { outline-color: #9ccce4; }
+:root[data-theme="dark"] .icon { border-color: transparent; }
+header a span { color: #a5422c; }
+:root[data-theme="dark"] header a span { color: #ed9979; }
+/* Keep every view control in its own dock, below the drawing. */
+#engine { height: calc(100% - 70px); }
+#view-tools { bottom: 12px; }
+@media (max-width: 760px) and (min-height: 651px) { #model-stage { height: 48%; } }
+#model-stage { background: var(--paper); }
