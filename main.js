@@ -612,6 +612,7 @@ const $ = (id) => document.getElementById(id);
 let lesson = createLesson(),
   exploring = false,
   playing = false,
+  previewing = false,
   moving = false,
   cycleT = 0,
   runUntil = 0,
@@ -682,6 +683,16 @@ function projectPart() {
   anchor.project(camera);
   const x = (anchor.x * 0.5 + 0.5) * stageSize.w,
     y = (-anchor.y * 0.5 + 0.5) * stageSize.h;
+  const onscreen =
+    anchor.z >= -1 &&
+    anchor.z <= 1 &&
+    x >= 0 &&
+    x <= stageSize.w &&
+    y >= 0 &&
+    y <= stageSize.h;
+  $("leaders").classList.toggle("on", onscreen);
+  $("part-tag").textContent =
+    p.name + (onscreen ? "" : " · reset view to locate");
   const r = $("part-tag").getBoundingClientRect(),
     s = stage.getBoundingClientRect(),
     lx = r.left - s.left + r.width / 2,
@@ -714,7 +725,11 @@ function setPhase(action) {
 }
 function render() {
   const ph = lesson.phase;
-  document.body.dataset.phase = exploring ? "parts" : playing ? "playing" : ph;
+  document.body.dataset.phase = exploring
+    ? "parts"
+    : previewing
+      ? "playing"
+      : ph;
   $("parts-toggle").textContent = exploring
     ? "Back to the guided journey"
     : "Look at parts one by one";
@@ -725,7 +740,8 @@ function render() {
   $("read-more").open = false;
   $("read-more").hidden = false;
   $("next").disabled = moving && !playing;
-  $("back").disabled = ph === "orient";
+  $("back").disabled = ph === "orient" || moving;
+  $("play").disabled = moving;
   $("play").hidden = exploring;
   $("reset").hidden = exploring;
   $("progress").hidden = exploring;
@@ -757,9 +773,9 @@ function render() {
     next =
       selectedPart === PARTS.length - 1 ? "Back to the journey" : "Next part";
     $("back").disabled = selectedPart === 0;
-  } else if (playing) {
+  } else if (previewing) {
     const i = Math.floor((cycleT / 2) % 4);
-    title = STROKES[i].name;
+    title = STROKES[i].name + (playing ? "" : " · paused");
     copy = STROKES[i].line;
     more =
       "Two crankshaft turns make one four-stroke cycle. Only the power stroke adds combustion energy. Crankshaft and flywheel motion carries the piston through the other strokes.";
@@ -877,8 +893,10 @@ $("next").onclick = () => {
     else selectPart(selectedPart + 1);
     return;
   }
-  if (playing) {
+  if (previewing) {
     playing = false;
+    previewing = false;
+    setXrayTargets(lesson.phase !== "orient");
     render();
     return;
   }
@@ -892,6 +910,7 @@ $("next").onclick = () => {
     setPhase({ type: "teachback" });
   else if (p === "teachback") {
     playing = true;
+    previewing = true;
     setXrayTargets(true);
     render();
   }
@@ -931,12 +950,14 @@ $("parts-toggle").onclick = toggleParts;
 $("part-select").onchange = (e) => selectPart(Number(e.target.value));
 $("play").onclick = () => {
   if (moving) return;
+  previewing = true;
   playing = !playing;
   setXrayTargets(playing || lesson.phase !== "orient");
   render();
 };
 $("reset").onclick = () => {
   playing = false;
+  previewing = false;
   moving = false;
   exploring = false;
   lesson = createLesson();
@@ -1063,8 +1084,8 @@ function tick() {
       render();
     }
   }
-  const mechanism = playing || moving || curStroke >= 0;
-  const ph = playing
+  const mechanism = previewing || moving || curStroke >= 0;
+  const ph = previewing
     ? (cycleT / 2) % 4
     : moving
       ? cycleT / 2
@@ -1156,6 +1177,9 @@ export function journeyEvidence() {
     lesson: structuredClone(lesson),
     exploring,
     playing,
+    previewing,
+    cycleT,
+    pistonY: piston.position.y,
     moving,
     selectedPart,
     stage: { ...stageSize },

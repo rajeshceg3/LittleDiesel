@@ -565,3 +565,51 @@ body.focus-mode {
     margin-top: 16px;
   }
 }
+@media (min-width: 761px) and (max-height: 600px) {
+  header {
+    padding: 10px 24px;
+  }
+  #workshop {
+    height: calc(100svh - 82px);
+    min-height: 290px;
+    padding: 0 24px 12px;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1.1fr) minmax(330px, 1fr);
+  }
+  #model-stage {
+    min-height: 0;
+  }
+  #guide {
+    min-height: 0;
+    padding: 8px 0 0;
+    justify-content: flex-start;
+  }
+  #guide-content {
+    min-height: 0;
+    overflow: auto;
+    padding: 0 7px 4px 0;
+    scrollbar-width: thin;
+  }
+  h1 {
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+  #step-copy,
+  #feedback {
+    font-size: 18px;
+  }
+  #journey-controls {
+    margin-top: 12px;
+    flex: none;
+  }
+  #view-tools {
+    bottom: 12px;
+  }
+  #progress {
+    margin-bottom: 10px;
+  }
+  #next {
+    padding: 10px;
+    font-size: 17px;
+  }
+}

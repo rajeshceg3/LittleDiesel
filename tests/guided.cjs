@@ -3,7 +3,7 @@ const { chromium } = require("playwright"),
   fs = require("node:fs");
 (async () => {
   const b = await chromium.launch({
-    executablePath: "/usr/bin/google-chrome",
+    executablePath: process.env.CHROME || "/usr/bin/google-chrome",
     args: ["--no-sandbox", "--enable-unsafe-swiftshader"],
   });
   const base = process.env.BASE_URL || "http://127.0.0.1:8795",
@@ -100,6 +100,11 @@ const { chromium } = require("playwright"),
       assert.equal((await evidence()).playing, true);
       await p.locator("#play").click();
       assert.equal((await evidence()).playing, false);
+      const paused = await evidence();
+      await p.waitForTimeout(150);
+      assert.equal((await evidence()).pistonY, paused.pistonY);
+      await p.locator("#next").click();
+      assert.equal((await evidence()).previewing, false);
       await p.locator("#reset").click();
       assert.equal((await evidence()).lesson.phase, "orient");
       await p.locator("#fullscreen").click();
