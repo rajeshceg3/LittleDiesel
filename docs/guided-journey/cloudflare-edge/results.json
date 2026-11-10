@@ -1,0 +1,50 @@
+[
+  {
+    "w": 390,
+    "h": 844,
+    "resetWhileMoving": true,
+    "pausedPose": true,
+    "rodContinuity": true,
+    "hitPiston": true,
+    "orbitZoomReset": true,
+    "fallbackEscape": true,
+    "resize": true,
+    "errors": []
+  },
+  {
+    "w": 320,
+    "h": 568,
+    "resetWhileMoving": true,
+    "pausedPose": true,
+    "rodContinuity": true,
+    "hitPiston": true,
+    "orbitZoomReset": true,
+    "fallbackEscape": true,
+    "resize": true,
+    "errors": []
+  },
+  {
+    "w": 844,
+    "h": 390,
+    "resetWhileMoving": true,
+    "pausedPose": true,
+    "rodContinuity": true,
+    "hitPiston": true,
+    "orbitZoomReset": true,
+    "fallbackEscape": true,
+    "resize": true,
+    "errors": []
+  },
+  {
+    "w": 1320,
+    "h": 900,
+    "resetWhileMoving": true,
+    "pausedPose": true,
+    "rodContinuity": true,
+    "hitPiston": true,
+    "orbitZoomReset": true,
+    "fallbackEscape": true,
+    "resize": true,
+    "errors": []
+  }
+]
