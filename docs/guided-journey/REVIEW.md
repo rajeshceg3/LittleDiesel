@@ -1,6 +1,6 @@
 # Little Diesel: adversarial journey review
 
-10November2026. Scope: user feedback16:31, guided path and bugs. Preserve current warm hand-inked clay geometry, not a new visual skin. Production remains unchanged until proof review.
+10 November 2026. Scope: user feedback at 16:31, guided path and bugs. Preserve current warm hand-inked clay geometry, not a new visual skin. Production remains unchanged until proof review.
 
 ## Confirmed problems
 
@@ -18,6 +18,10 @@ One learner-paced sequence: meet one cylinder, predict/watch intake, compression
 Optional Look at parts one by one keeps the assembled cutaway, includes nine components, selected highlight plus anchor dot/diagram leader. Diagram line explicitly is not a fluid/force path and may pass in front of parts. Camera fit runs only on resize/reset; user orbit and zoom remain free in lesson and exploration. Returning restores question/answer phase. One part at a time, three choices maximum, no all-parts label cloud.
 
 Next is the primary action. Back, play/pause, reset and full screen have accessible names. Fullscreen includes model and current guide, with viewport fallback. Extra explanation/model limits are disclosed. Existing spring feel retained for feedback; press .97/120ms, feedback240ms and instant reduced-motion UI are small context-fit tuning, not a fleet rollout.
+
+## Test migration
+
+Old next-actions workflow targeted removed three-mode DOM. It now exercises guided.cjs at the same four widths; exhaustive lesson-state test remains. Prior browser scripts retained as historical regression evidence, not silently presented as current passes. Native select has a separate stable container so browser accessibility/select helpers cannot rename the application container.
 
 ## Verification boundaries
 
