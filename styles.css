@@ -730,3 +730,11 @@ header a span { color: #a5422c; }
 #view-tools { bottom: 12px; }
 @media (max-width: 760px) and (min-height: 651px) { #model-stage { height: 48%; } }
 #model-stage { background: var(--paper); }
+
+#info-open{background:transparent;border:0;box-shadow:none;min-width:44px;min-height:44px;margin-left:auto;padding:6px;font-size:24px}#story-info{max-width:560px;max-height:calc(100svh - 32px);overflow:auto}#story-info button{margin:8px 4px}#step-copy[hidden]{display:none!important}
+
+#optional-tools #view-tools{position:static;display:flex;flex-wrap:wrap;justify-content:flex-start;margin:14px 0}#optional-tools #parts-toggle{max-width:100%}#optional-tools button{min-height:44px}#progress{display:none!important}#info-open{margin-left:auto;flex:none}header{gap:12px}
+
+#optional-tools #view-tools{transform:none;left:auto;bottom:auto;width:100%;max-width:100%}#story-info{width:calc(100% - 32px)}
+
+#model-stage #info-open{position:absolute;top:10px;right:10px;z-index:10;color:var(--ink);background:var(--paper);border-radius:50%;margin:0}

@@ -18,6 +18,10 @@ const { chromium } = require("playwright"),
         viewport: { width: w, height: h },
         reducedMotion: process.env.MOTION || "reduce",
       });
+      const utility = async selector => {
+        if (!(await p.locator(selector).isVisible())) await p.locator('#info-open').click();
+        await p.locator(selector).click();
+      };
       let errors = [];
       p.on("pageerror", (e) => errors.push(e.message));
       await p.goto(base);
@@ -29,6 +33,12 @@ const { chromium } = require("playwright"),
           const m = await import("./main.js");
           return m.journeyEvidence();
         });
+      assert.equal(await p.locator('summary,#scroll-hint').count(),0);
+      assert.equal(await p.locator('#step-copy').isVisible(),false);
+      await p.locator('#info-open').click();
+      assert(await p.locator('#more-copy').isVisible());
+      await p.keyboard.press('Escape');
+      assert.equal(await p.evaluate(()=>document.activeElement.id),'info-open');
       const init = await evidence();
       assert.equal(init.playing, false);
       await p.screenshot({ path: `${out}/intro-${w}.png`, fullPage: true });
@@ -37,7 +47,7 @@ const { chromium } = require("playwright"),
       await p.screenshot({ path: `${out}/question-${w}.png`, fullPage: true });
       await p.locator("#answers button").first().click();
       assert.ok((await p.locator("#feedback").textContent()).length > 30);
-      await p.locator("#parts-toggle").click();
+      await utility("#parts-toggle");
       const state = (await evidence()).lesson;
       const options = await p.locator("#part-select option").count();
       assert.equal(options, 9);
@@ -67,10 +77,10 @@ const { chromium } = require("playwright"),
       await p.locator("#part-select").selectOption("3");
       await p.screenshot({ path: `${out}/part-${w}.png`, fullPage: true });
       const d = (await evidence()).distance;
-      await p.locator("#zoom-in").click();
+      await utility("#zoom-in");
       await p.waitForTimeout(400);
       assert.ok((await evidence()).distance < d * 0.99);
-      await p.locator("#parts-toggle").click();
+      await utility("#parts-toggle");
       assert.deepEqual((await evidence()).lesson, state);
       for (let i = 0; i < 4; i++) {
         if (i > 0) {
@@ -96,18 +106,18 @@ const { chromium } = require("playwright"),
           "turning crank",
         ),
       );
-      await p.locator("#play").click();
+      await utility("#play");
       assert.equal((await evidence()).playing, true);
-      await p.locator("#play").click();
+      await utility("#play");
       assert.equal((await evidence()).playing, false);
       const paused = await evidence();
       await p.waitForTimeout(150);
       assert.equal((await evidence()).pistonY, paused.pistonY);
       await p.locator("#next").click();
       assert.equal((await evidence()).previewing, false);
-      await p.locator("#reset").click();
+      await utility("#reset");
       assert.equal((await evidence()).lesson.phase, "orient");
-      await p.locator("#fullscreen").click();
+      await utility("#fullscreen");
       await p.waitForTimeout(400);
       assert.equal(
         await p.evaluate(
@@ -123,7 +133,7 @@ const { chromium } = require("playwright"),
         path: `${out}/fullscreen-${w}.png`,
         fullPage: true,
       });
-      await p.locator("#fullscreen").click();
+      await utility("#fullscreen");
       assert.equal(
         await p.evaluate(
           () => document.documentElement.scrollWidth > innerWidth,

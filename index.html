@@ -25,12 +25,10 @@
     <header>
       <a href="./" aria-label="Little Diesel home"
         >Little Diesel<span aria-hidden="true">✦</span></a
-      ><button id="parts-toggle" aria-expanded="false">
-        Look at parts one by one
-      </button>
+      >
     </header>
     <main id="workshop">
-      <section id="model-stage" aria-label="Engine model">
+      <section id="model-stage" aria-label="Engine model"><button id="info-open" class="quiet" aria-label="About this engine" aria-haspopup="dialog">ⓘ</button>
         <canvas
           id="engine"
           aria-label="A hand-inked diesel engine. Drag to turn; use the zoom buttons to look closer."
@@ -39,7 +37,42 @@
           <path id="part-line" />
           <circle id="part-anchor" r="6" /></svg
         ><span id="part-tag" hidden></span>
-        <div id="view-tools">
+
+      </section>
+      <section id="guide" aria-label="Guided engine journey">
+        <div id="guide-content" aria-live="polite">
+          <h1 id="step-title" tabindex="-1"></h1>
+          <p id="step-copy"></p>
+          <div id="answers"></div>
+          <p id="feedback"></p>
+          <div id="part-picker" hidden>
+            <label for="part-select">Choose a part</label
+            ><select id="part-select"></select>
+          </div>
+
+        </div>
+
+        <div id="journey-controls">
+          <div id="progress" aria-label="Journey progress"></div>
+          <div class="actions">
+            <button
+              id="back"
+              class="icon"
+              aria-label="Previous step"
+              title="Previous step"
+            >
+              ←</button
+            ><button id="next">
+              Start learning <span aria-hidden="true">→</span></button
+            >
+          </div>
+        </div>
+      </section>
+    <dialog id="story-info" aria-labelledby="info-title">
+      <h2 id="info-title">A closer look</h2>
+      <div id="optional-tools"><button id="parts-toggle" aria-expanded="false">
+        Look at parts one by one
+      </button>        <div id="view-tools">
           <button id="zoom-in" aria-label="Zoom in" title="Zoom in">＋</button
           ><button id="zoom-out" aria-label="Zoom out" title="Zoom out">
             −</button
@@ -66,38 +99,7 @@
             </svg>
           </button>
           <button id="theme" aria-label="Use dark theme" aria-pressed="false" title="Change theme">☾</button>
-        </div>
-      </section>
-      <section id="guide" aria-label="Guided engine journey">
-        <div id="guide-content" aria-live="polite">
-          <h1 id="step-title" tabindex="-1"></h1>
-          <p id="step-copy"></p>
-          <div id="answers"></div>
-          <p id="feedback"></p>
-          <div id="part-picker" hidden>
-            <label for="part-select">Choose a part</label
-            ><select id="part-select"></select>
-          </div>
-          <details id="read-more">
-            <summary>Read a little more</summary>
-            <p id="more-copy"></p>
-            <button id="limits-open" class="quiet">What this model leaves out</button>
-          </details>
-        </div>
-        <span id="scroll-hint" hidden>Scroll for more ↓</span>
-        <div id="journey-controls">
-          <div id="progress" aria-label="Journey progress"></div>
-          <div class="actions">
-            <button
-              id="back"
-              class="icon"
-              aria-label="Previous step"
-              title="Previous step"
-            >
-              ←</button
-            ><button id="next">
-              Start learning <span aria-hidden="true">→</span></button
-            ><button
+        </div><button
               id="play"
               class="icon"
               aria-label="Play the engine cycle"
@@ -111,11 +113,10 @@
               title="Restart journey"
             >
               ↺
-            </button>
-          </div>
-        </div>
-      </section>
-    </main>
+            </button></div><p id="context-copy"></p><p id="more-copy"></p>
+      <button id="limits-open" class="quiet">What this model leaves out</button>
+      <button id="info-close">Back to the engine</button>
+    </dialog>
     <dialog id="limits">
       <h2>A model, not a whole engine</h2>
       <p>
@@ -129,6 +130,7 @@
       </p>
       <button id="limits-close">Back to the engine</button>
     </dialog>
+    </main>
     <script type="module" src="main.js"></script>
   </body>
 </html>

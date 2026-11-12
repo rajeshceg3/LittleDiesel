@@ -772,19 +772,13 @@ function setPhase(action) {
     $("feedback").classList.add("answer-enter");
   }
 }
-function updateScrollHint() {
-  const e = $("guide-content");
-  $("scroll-hint").hidden = !(
-    e.scrollHeight > e.clientHeight + 10 &&
-    e.scrollTop + e.clientHeight < e.scrollHeight - 10
-  );
-}
-$("guide-content").addEventListener("scroll", updateScrollHint, {
-  passive: true,
-});
-new ResizeObserver(updateScrollHint).observe($("guide-content"));
+// No scrolling/disclosure cue competes with the engine. Context is on demand.
+function updateScrollHint() {}
 function render() {
   const ph = lesson.phase;
+  // Answer and playback phases are not competing drag zones.
+  controls.enabled = exploring || ph === 'orient' || ph === 'held';
+  document.body.dataset.activeZone = exploring ? 'picture' : ['predict','transfer','feedback','transferFeedback'].includes(ph) ? 'answer' : moving || playing ? 'watch' : 'next';
   document.body.dataset.phase = exploring
     ? "parts"
     : previewing
@@ -797,12 +791,15 @@ function render() {
   $("part-picker").hidden = !exploring;
   $("answers").replaceChildren();
   $("feedback").textContent = "";
-  $("read-more").open = false;
-  $("read-more").hidden = false;
+
   $("next").disabled = moving && !playing;
   $("back").disabled = ph === "orient" || moving;
   $("play").disabled = moving;
   $("play").hidden = exploring;
+  // Playback pause stays in reach while the engine is running. Other utility
+  // actions live in the quiet context panel instead of competing with Next.
+  const playHost = playing ? document.querySelector('.actions') : $("optional-tools");
+  playHost.append($("play"));
   $("reset").hidden = exploring;
   $("progress").hidden = exploring;
   $("back").setAttribute(
@@ -916,7 +913,8 @@ function render() {
   }
   $("step-title").textContent = title;
   $("step-copy").textContent = copy;
-  $("step-copy").hidden = !copy;
+  $("step-copy").hidden = true;
+  $("context-copy").textContent = copy;
   $("more-copy").textContent = more;
   $("next").replaceChildren(document.createTextNode(next + " "));
   const arrow = document.createElement("span");
@@ -1104,7 +1102,20 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key.toLowerCase() === "f") fullscreen();
 });
+$("info-open").onclick = () => {
+  limitsOpen = true;
+  $("story-info").showModal();
+};
+$("optional-tools").addEventListener("click", e => {
+  if (e.target.closest('button') && $("story-info").open) $("story-info").close();
+});
+$("info-close").onclick = () => $("story-info").close();
+$("story-info").addEventListener("close", () => {
+  limitsOpen = $("limits").open;
+  $("info-open").focus();
+});
 $("limits-open").onclick = () => {
+  $("story-info").close();
   limitsOpen = true;
   $("limits").showModal();
 };
