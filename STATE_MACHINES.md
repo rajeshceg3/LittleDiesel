@@ -143,3 +143,23 @@ Legacy hidden Previous/Restart/Model limits elements are compatibility handlers,
 [docs/statecharts/README.md](docs/statecharts/README.md) indexes editable TLA+/config/view models, generated Mermaid/SVG, chat-ready PNGs, bounded model-result summaries and safe actual hosted screenshots. Includes separate post-fix note-ownership and idempotent-reveal charts so the implicit machines are not hidden by the original overview. Keep these synchronized with this living file and regression tests. No internal operational material belongs in the public repo.
 
 Focused-controls final hosted evidence: PR19 https://github.com/rajeshceg3/LittleDiesel/pull/19 merged54984596e9cef09c3e465dcdbcd203f025bc6291. Live https://littlediesel.vercel.app/?layout=focused-1 . Served index/main/styles exactly match source11f14a9: JS c083e682eea617e8cac7d3e6bc9b8c27c2063d5e9653b4d379bfc5f8f2b1efb3; CSS dd69d2efd4c0cd1ac82217fb4ba37c3ae46e4c43a63f466484928ff3567fc15d. Full focused-control tests passed hosted320/390/1320/844, five state-regression paths passed hosted390, reducer23296states passed. Actual hosted phone intro/prediction/held and landscape menu pixels inspected. No physical-device claim. A discovered menu Tab escape in the local prototype was fixed with explicit first/last wrapping, then all fourwidth focus/Escape/return checks passed.
+
+## Calm main view revision,12November2026
+Current main entry is the guided-engine implementation, not the legacy More-menu
+layout described above. Optional per-step detail and model limits now live behind
+the quiet header information button. Main view has no Read a little more or Scroll
+for more cue. The main explanatory paragraph is withheld; its exact step context
+is retained in the information dialog. The headline/question and necessary answer
+feedback remain in the journey. Opening context pauses time progression without
+changing phase; Escape/close restores the opener. Model limits is a separate modal.
+
+Gate: `node tests/calm-main.cjs` verifies markup placement and no main disclosure
+cue. Browser checks must verify dialog open/Escape/focus return, all lesson phases,
+Next/Back/reset/end,390px and desktop, before merge and after deployment.
+No claim that removing optional depth proves a child understands the engine.
+Utility controls (parts, zoom, theme, fullscreen, reset, optional playback) are
+inside the context panel. Pause returns to the main controls while running.
+Orbit drag is disabled during prediction/answer and playback, so the question
+and camera are not simultaneously active zones. A fuller picture-first pedagogy
+review remains separate; this revision does not pretend the old lesson order
+already implements every new active-zone teaching requirement.
